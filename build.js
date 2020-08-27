@@ -1,22 +1,24 @@
 const electronInstaller = require('electron-winstaller');
 const path = require('path');
-const {version, author} = require('./package');
+const {version, author ,description} = require('./package');
 
 // In this case, we can use relative paths
 const settings = {
     // Specify the folder where the built app is located
-    appDirectory: './build/TN-Browser-win32-x64',
+    appDirectory: './build/TN_Browser-win32-x64',
     // Specify the existing folder where
     outputDirectory: './installers',
     // The name of the Author of the app (the name of your company)
     authors: author,
+    description,
     // The name of the executable of your built
-    exe: `./TN-Browser.exe`,
-    setupIcon: './assets/icon.png',
+    exe: `./TN_Browser.exe`,
+    setupIcon: './assets/favicon.ico',
     version,
     setupExe: `Setup-v${version}.exe`,
-    iconUrl: path.resolve('./assets/icon.png'),
-    noMsi: true
+    iconUrl: path.resolve('./assets/favicon.ico'),
+    noMsi: true,
+    loadingGif: './assets/loading.gif'
 };
 
 (async function(){

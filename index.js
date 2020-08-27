@@ -1,21 +1,28 @@
 const { app, BrowserWindow } = require('electron')
-
+const path = require("path");
+const { ipcMain  } = require('electron');
+console.log(BrowserWindow)
+let win;
 function createWindow() {
-    const win = new BrowserWindow({
+     win = new BrowserWindow({
         width: 800,
         height: 600,
         kiosk: true,
         title: 'TN-Browser',
-        icon: './assets/icon.png',
+        icon: './assets/favicon.ico',
         webPreferences: {
-            nodeIntegration: true,
+            webSecurity: false,
+            allowRunningInsecureContent: true,
+            enableRemoteModule: true,
+            preload: path.join(__dirname, "preload.js") // use a preload script
         }
     })
-    win.webContents.print({ silent: true })
     win.loadFile('./splash.html');
     setTimeout(() => {
         win.loadURL('https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/');
     }, 3000)
 }
-
+ipcMain.on('print',()=>{
+    win.webContents.print({ silent: true })
+} )
 app.whenReady().then(createWindow)

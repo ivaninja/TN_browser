@@ -1,21 +1,23 @@
 {
   "name": "TN-browser",
   "version": "1.0.0",
-  "description": "",
+  "description": "Private Browser",
   "main": "index.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pack": "electron-packager . TN_Browser --overwrite --asar --platfrom=win32 --arch=x64 --prune=true --out=../build/ --icon=/assets/icon.png"
+    "build": "node build.js",
+    "pack": "electron-packager . TN_Browser --overwrite --asar --platfrom=win32 --arch=x64 --prune=true --out=./build/ --icon=./assets/favicon.ico"
   },
   "keywords": [],
-  "author": "",
+  "author": "TELENORMA",
   "license": "ISC",
   "devDependencies": {
     "electron": "^10.0.0",
     "electron-packager": "^15.1.0"
   },
   "dependencies": {
-    "electron-winstaller": "^4.0.1"
+    "electron-winstaller": "^4.0.1",
+    "jquery": "^3.5.1"
   }
 }
