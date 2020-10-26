@@ -1,6 +1,6 @@
 {
   "name": "TN-browser",
-  "version": "1.0.0",
+  "version": "1.0.0-test",
   "description": "Private Browser",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "electron-packager": "^15.1.0"
   },
   "dependencies": {
+    "electron-is-dev": "^1.2.0",
     "electron-winstaller": "^4.0.1",
     "jquery": "^3.5.1"
   }
