@@ -27,6 +27,9 @@ class AppView {
         });
 
         _logger.log(`settings`, this.settings);
+
+        const settingsEvent = new CustomEvent('settings', { detail: this.settings });
+        window.dispatchEvent(settingsEvent);
     }
 
     initEvents() {
@@ -41,6 +44,6 @@ class AppView {
 
 
 window.addEventListener('load', () => {
-    new AppView();
+    window._APP_ = new AppView();
 });
 

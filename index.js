@@ -11,8 +11,13 @@ const workDirectory = isDev ?
 
 
 const DEFAULT_SETTINGS = {
+    width: 800,
+    height: 600,
+    kiosk: true,
+    title: 'TN-Browser',
     showMinimizeButton: false,
     debug: isDev,
+    splashScreenTimeout: 3000,
     workDirectory,
     isDev,
     defaultUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
@@ -23,18 +28,15 @@ function setDebug(debug) {
     global._logger = new Proxy(console, {
         get: function (target, name) {
             return debug === true ? target[name]
-                : () => {};
+                : () => {
+                };
         }
     });
 }
 
-
-
-
 class MainProcess {
     constructor() {
         this.app = app;
-        this.BrowserWindow = BrowserWindow;
         this.ipcMain = ipcMain;
         this.autoUpdater = autoUpdater;
         this.dialog = dialog;
@@ -118,10 +120,10 @@ class MainProcess {
 
     createWindow() {
         this.win = new BrowserWindow({
-            width: 800,
-            height: 600,
-            kiosk: false,
-            title: 'TN-Browser',
+            width: this.settings.width,
+            height: this.settings.height,
+            kiosk: this.settings.kiosk,
+            title: this.settings.title,
             icon: './assets/favicon.ico',
             webPreferences: {
                 nativeWindowOpen: true,
@@ -136,7 +138,7 @@ class MainProcess {
 
         setTimeout(() => {
             this.win.loadURL(this.settings.defaultUrl);
-        }, 3000);
+        }, this.settings.splashScreenTimeout);
     }
 
     getSettings(event, arg) {
