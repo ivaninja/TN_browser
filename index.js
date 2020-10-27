@@ -142,7 +142,7 @@ class MainProcess {
 
         this.win.loadFile('./splash.html');
 
-        if(this.settings.debug){
+        if (this.settings.debug) {
             this.win.webContents.openDevTools();
         } else {
             this.win.removeMenu();
@@ -157,6 +157,11 @@ class MainProcess {
     getSettings(event, arg) {
         event.sender.send('mainprocess-response', {action: 'init', settings: this.settings});
     }
+
+    openSettings() {
+        this.win.loadFile('./settings.html');
+    }
+
 }
 
 new MainProcess();

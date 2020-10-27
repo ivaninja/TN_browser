@@ -59,8 +59,8 @@ class AppView {
         this.addPageListeners();
     }
 
-    initEvents() {
 
+    initEvents() {
         ipcRenderer.on('mainprocess-response', (event, arg) => {
             this[arg.action](event, arg);
         });
@@ -70,8 +70,6 @@ class AppView {
 
     addPageListeners() {
         const selector = document.querySelector('#closeapp');
-
-
         if (selector) {
             selector.remove();
             if (this.settings.showMinimizeButton) {
@@ -102,7 +100,7 @@ class AppView {
                     const value = !(this.win.isKiosk());
                     this.win.setKiosk(value);
 
-                    if(value){
+                    if (value) {
                         control.classList.remove('minimized')
                     } else {
                         control.classList.add('minimized')
@@ -112,9 +110,15 @@ class AppView {
 
             }
         }
+
+
+        window.addEventListener('keydown', (e) => {
+            if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
+                ipcRenderer.send('request-mainprocess-action', {action: 'openSettings'});
+            }
+        }, true);
     }
 }
-
 
 window.addEventListener('load', () => {
     window._APP_ = new AppView();
