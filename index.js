@@ -15,6 +15,9 @@ const DEFAULT_SETTINGS = {
     height: 600,
     kiosk: true,
     title: 'TN-Browser',
+    frame: false,
+    buttonPosition: 'TopRight', // TopLeft, TopRight, BottomRight, BottomLeft
+    buttonMargin: '10px',
     showMinimizeButton: false,
     debug: isDev,
     splashScreenTimeout: 3000,
@@ -124,6 +127,7 @@ class MainProcess {
             height: this.settings.height,
             kiosk: this.settings.kiosk,
             title: this.settings.title,
+            frame: this.settings.frame,
             icon: './assets/favicon.ico',
             webPreferences: {
                 nativeWindowOpen: true,
@@ -135,6 +139,13 @@ class MainProcess {
         });
 
         this.win.loadFile('./splash.html');
+
+        if(this.settings.debug){
+            this.win.webContents.openDevTools();
+        } else {
+            this.win.removeMenu();
+        }
+        this.win.removeMenu();
 
         setTimeout(() => {
             this.win.loadURL(this.settings.defaultUrl);
