@@ -7,7 +7,7 @@ const {version} = require('./package.json');
 
 const workDirectory = isDev ?
     path.resolve(`${path.dirname(process.execPath)}/../../../`) : // ../../../node_modules/electron/dist
-    path.resolve(`${path.dirname(process.execPath)}`)
+    path.resolve(`${path.dirname(process.execPath)}`);
 
 
 const DEFAULT_SETTINGS = {
@@ -15,10 +15,12 @@ const DEFAULT_SETTINGS = {
     height: 600,
     kiosk: true,
     title: 'TN-Browser',
-    frame: false,
-    buttonPosition: 'TopRight', // TopLeft, TopRight, BottomRight, BottomLeft
+    frame: true,
+    buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
     buttonMargin: '10px',
     showMinimizeButton: false,
+    minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
+    maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
     debug: isDev,
     splashScreenTimeout: 3000,
     workDirectory,

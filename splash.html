@@ -31,6 +31,8 @@
             font-size: 22px;
         }
     </style>
+
+    <link rel="stylesheet" href="./assets/icons.css"/>
 </head>
 
 <body class="wrapper">
@@ -40,18 +42,16 @@
 <!-- <button id="btn" click="">
   Print me
 </button> -->
+
+<div class="control-container"></div>
 </body>
 <script>
-
     window.addEventListener('settings', (e) => {
         document.querySelector('[data-selector="version"]').innerHTML = `v` + e.detail.version;
     })
-
-    document.getElementById("btn").addEventListener('click', () => {
-        window.print()
-    });
-
-
+    /*    document.getElementById("btn").addEventListener('click', () => {
+            window.print()
+        });*/
 </script>
 
 </html>

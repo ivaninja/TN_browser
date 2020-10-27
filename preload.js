@@ -8,6 +8,25 @@ class AppView {
         this.initEvents();
         this.remote = remote;
         this.win = this.remote.getCurrentWindow();
+
+        this.css = `
+.control-container {
+  position: fixed;
+  margin: %_MARGIN_%;
+  %_POSITION_%
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ceced0;
+  border-radius: 4px;
+  background-image: url('%_MINIMIZE_ICON_URL_%');
+  background-position: center;
+  background-size: contain;
+  cursor: pointer;
+}
+.control-container.minimized {
+  background-image: url('%_MAXIMIZE_ICON_URL_%');
+}`;
+
     }
 
     async init(event, arg) {
@@ -50,19 +69,47 @@ class AppView {
     }
 
     addPageListeners() {
-        const selector = document.querySelector('#closeapp')
+        const selector = document.querySelector('#closeapp');
+
+
         if (selector) {
-
+            selector.remove();
             if (this.settings.showMinimizeButton) {
-                selector.style.left = 'unset';
-                selector.style.right = '10px';
+                const css = document.createElement('link');
+                css.setAttribute('rel', 'stylesheet');
 
-                selector.addEventListener('click', () => {
-                    this.win.setKiosk(!(this.win.isKiosk()));
+                const positions = {
+                    TOP_LEFT: ['top: 0;', 'left: 0;'].join('\n'),
+                    TOP_RIGHT: ['top: 0;', 'right: 0;'].join('\n'),
+                    BOTTOM_LEFT: ['bottom: 0;', 'left: 0;'].join('\n'),
+                    BOTTOM_RIGHT: ['bottom: 0;', 'right: 0;'].join('\n'),
+                };
+
+                this.css = this.css.replace('%_MARGIN_%', this.settings.buttonMargin || '10px');
+                this.css = this.css.replace('%_MINIMIZE_ICON_URL_%', this.settings.minimizeIconUrl);
+                this.css = this.css.replace('%_MAXIMIZE_ICON_URL_%', this.settings.maximizeIconUrl);
+                this.css = this.css.replace('%_POSITION_%', positions[this.settings.buttonPosition] || positions.TOP_RIGHT);
+
+
+                css.setAttribute('href', `data:text/css;base64,${btoa(this.css)}`);
+                document.head.appendChild(css);
+
+                const control = document.createElement('div');
+                control.setAttribute('class', 'control-container');
+                document.body.appendChild(control);
+
+                control.addEventListener('click', () => {
+                    const value = !(this.win.isKiosk());
+                    this.win.setKiosk(value);
+
+                    if(value){
+                        control.classList.remove('minimized')
+                    } else {
+                        control.classList.add('minimized')
+                    }
+
                 });
 
-            } else {
-                selector.style.display = 'none';
             }
         }
     }
