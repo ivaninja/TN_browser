@@ -8,6 +8,8 @@ class AppView {
         this.initEvents();
         this.remote = remote;
         this.win = this.remote.getCurrentWindow();
+        this.ipcRenderer = ipcRenderer;
+
 
         this.css = `
 .control-container {
@@ -59,6 +61,32 @@ class AppView {
         this.addPageListeners();
     }
 
+    defineSettings(event, arg) {
+        this.settings = arg.settings;
+        this.win.setTitle(this.settings.title);
+        this.win.setKiosk(this.settings.kiosk);
+        // this.win.setFrame(this.settings.frame); // it dont work ((
+
+        // remove old
+        const cssSel = document.querySelector(`[data-selector="css-style"]`);
+        const controlContainerSel = document.querySelector(`[data-selector="control-container"]`);
+
+        const closeapp = document.createElement('div');
+        closeapp.setAttribute('id', 'closeapp');
+        document.body.appendChild(closeapp);
+
+        if (cssSel) {
+            cssSel.remove();
+        }
+
+        if (controlContainerSel) {
+            controlContainerSel.remove();
+        }
+
+        // set new
+        this.addPageListeners();
+
+    }
 
     initEvents() {
         ipcRenderer.on('mainprocess-response', (event, arg) => {
@@ -70,11 +98,13 @@ class AppView {
 
     addPageListeners() {
         const selector = document.querySelector('#closeapp');
+
         if (selector) {
             selector.remove();
             if (this.settings.showMinimizeButton) {
                 const css = document.createElement('link');
                 css.setAttribute('rel', 'stylesheet');
+                css.setAttribute('data-selector', `css-style`);
 
                 const positions = {
                     TOP_LEFT: ['top: 0;', 'left: 0;'].join('\n'),
@@ -94,6 +124,7 @@ class AppView {
 
                 const control = document.createElement('div');
                 control.setAttribute('class', 'control-container');
+                control.setAttribute('data-selector', 'control-container');
                 document.body.appendChild(control);
 
                 control.addEventListener('click', () => {
@@ -107,7 +138,6 @@ class AppView {
                     }
 
                 });
-
             }
         }
 

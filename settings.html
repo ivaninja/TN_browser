@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Settings</title>
     <link rel="stylesheet" href="assets/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/settings.css">
     <script src="assets/js/settings.js" defer></script>
 </head>
 <body>
@@ -13,6 +14,27 @@
         <form data-selector="form">
 
             <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Window Title</label>
+                <div class="col-sm-10">
+                    <input model="title" type="text" class="form-control"/>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Window Width</label>
+                <div class="col-sm-10">
+                    <input model="width" type="number" class="form-control"/>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Window Height</label>
+                <div class="col-sm-10">
+                    <input model="height" type="number" class="form-control"/>
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Default Url:</label>
                 <div class="col-sm-10">
                     <input type="text" model="defaultUrl" class="form-control"/>
@@ -20,82 +42,122 @@
             </div>
 
             <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Button position</label>
+                <label class="col-sm-2 col-form-label">Splash Screen Timeout</label>
                 <div class="col-sm-10">
-                    <select model="buttonPosition" class="form-control">
-                        <option>TOP_LEFT</option>
-                        <option>TOP_RIGHT</option>
-                        <option>BOTTOM_RIGHT</option>
-                        <option>BOTTOM_LEFT</option>
-                    </select>
+                    <input model="splashScreenTimeout" type="number" class="form-control"/>
                 </div>
             </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Minimize Icon Url</label>
-                <div class="col-sm-10">
-                    <input model="minimizeIconUrl" type="text" class="form-control" />
-                </div>
-            </div>
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Maximize Icon Url</label>
-                <div class="col-sm-10">
-                    <input model="maximizeIconUrl" type="text" class="form-control" />
-                </div>
-            </div>
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Title</label>
-                <div class="col-sm-10">
-                    <input model="title" type="text" class="form-control" />
-                </div>
-            </div>
+            <div class="row bg-light border m-0 py-3 mb-3">
+                <div class="col-12">
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">height</label>
-                <div class="col-sm-10">
-                    <input model="height" type="number" class="form-control" />
-                </div>
-            </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group form-check">
+                                <label class="form-check-label">
+                                    <input model="showMinimizeButton" type="checkbox" class="form-check-input"/> Show
+                                    Minimize Button</label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group row">
+                                <label class="col-sm col-form-label">Button position</label>
+                                <div class="col-sm">
+                                    <select model="buttonPosition" class="form-control">
+                                        <option value="TOP_LEFT">TOP LEFT</option>
+                                        <option value="TOP_RIGHT">TOP RIGHT</option>
+                                        <option value="BOTTOM_RIGHT">BOTTOM RIGHT</option>
+                                        <option value="BOTTOM_LEFT">BOTTOM LEFT</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">width</label>
-                <div class="col-sm-10">
-                    <input model="width" type="number" class="form-control" />
                 </div>
-            </div>
+                <div class="col-sm-4">
+                    Minimize Button Margin
+                </div>
+                <div class="col-sm-8 pl-0">
+                    <div class="row m-0">
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">Left</label>
+                                <div class="">
+                                    <input submodel="left" type="number" class="form-control"/>
+                                </div>
+                            </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">buttonMargin</label>
-                <div class="col-sm-10">
-                    <input model="buttonMargin" type="text" class="form-control" />
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">Right</label>
+                                <div class="">
+                                    <input submodel="right" type="number" class="form-control"/>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">Top</label>
+                                <div class="">
+                                    <input submodel="top" type="number" class="form-control"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group row">
+                                <label class="form-label">Bottom</label>
+                                <div class="">
+                                    <input submodel="bottom" type="number" class="form-control"/>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <input model="buttonMargin" disabled type="hidden" class="form-control"/>
                 </div>
+
+                <div class="col-12">
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Minimize Icon Url</label>
+                        <div class="col-sm-10">
+                            <input model="minimizeIconUrl" type="text" class="form-control"/>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Maximize Icon Url</label>
+                        <div class="col-sm-10">
+                            <input model="maximizeIconUrl" type="text" class="form-control"/>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input model="kiosk" type="checkbox" class="form-check-input"/>
-                    Kiosk Mode</label>
+                    <input model="kiosk" type="checkbox" class="form-check-input"/> Kiosk Mode</label>
             </div>
+
 
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input model="frame" type="checkbox" class="form-check-input"/>
-                    Frame Mode</label>
+                    <input model="frame" type="checkbox" class="form-check-input"/> Frame Mode</label>
+            </div>
+
+            <div class="d-flex justify-content-between mb-5 ">
+                <div class="btn btn-lg btn-light" data-selector="cancel-btn">Back</div>
+                <button type="submit" class="btn btn-lg btn-success">Save</button>
             </div>
 
 
-            <button type="submit" class="btn btn-primary">Save</button>
         </form>
     </div>
+    <div id="closeapp"></div>
 </div>
-
-
-<script type="x-html-template" data-selector="text-template">
-    <div class="form-group">
-        <label for="{{id}}">{{label}}</label>
-        <input type="text" class="form-control" id="{{id}}">
-    </div>
-</script>
-
 </body>
 </html>

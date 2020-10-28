@@ -1,5 +1,6 @@
 # Setting # 
 
+## Manual Setting ##
 Put file to `___PROGRAM_PATH___/settings.json`
 
 Example:
@@ -9,3 +10,6 @@ Example:
 }
 ```
 
+## Using UI ##
+
+For open Setting Interface use shortcut `CTRL`+`ALT`+`S`

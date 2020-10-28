@@ -17,13 +17,14 @@ const DEFAULT_SETTINGS = {
     title: 'TN-Browser',
     frame: true,
     buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
-    buttonMargin: '10px',
+    buttonMargin: '10px 10px 10px 10px',
     showMinimizeButton: false,
     minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
     maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
     debug: isDev,
     splashScreenTimeout: 3000,
     workDirectory,
+    showMenu: false,
     isDev,
     defaultUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
     version,
@@ -59,7 +60,7 @@ class MainProcess {
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
-        this.createWindow();
+        this.start();
     }
 
     async initSettings() {
@@ -123,7 +124,27 @@ class MainProcess {
 
     }
 
+
+    start() {
+        this.createWindow();
+
+        this.win.loadFile('./splash.html');
+
+        if (this.settings.debug) {
+            this.win.webContents.openDevTools();
+        }
+
+        if (!this.settings.showMenu) {
+            this.win.removeMenu();
+        }
+
+        setTimeout(() => {
+            this.win.loadURL(this.settings.defaultUrl);
+        }, this.settings.splashScreenTimeout);
+    }
+
     createWindow() {
+
         this.win = new BrowserWindow({
             width: this.settings.width,
             height: this.settings.height,
@@ -140,18 +161,6 @@ class MainProcess {
             },
         });
 
-        this.win.loadFile('./splash.html');
-
-        if (this.settings.debug) {
-            this.win.webContents.openDevTools();
-        } else {
-            this.win.removeMenu();
-        }
-        this.win.removeMenu();
-
-        setTimeout(() => {
-            this.win.loadURL(this.settings.defaultUrl);
-        }, this.settings.splashScreenTimeout);
     }
 
     getSettings(event, arg) {
@@ -160,6 +169,35 @@ class MainProcess {
 
     openSettings() {
         this.win.loadFile('./settings.html');
+    }
+
+    cancelSettings() {
+        this.win.loadURL(this.settings.defaultUrl);
+    }
+
+
+    saveSettings(event, arg) {
+        // event, arg
+        fs.writeFileSync(`${workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
+        this.settings = {
+            ...this.settings,
+            ...arg.data
+        };
+
+        const oldWin = this.win;
+
+        this.createWindow();
+        this.openSettings();
+
+        if (this.settings.debug) {
+            this.win.webContents.openDevTools();
+        }
+
+        if (!this.settings.showMenu) {
+            this.win.removeMenu();
+        }
+
+        oldWin.close();
     }
 
 }
