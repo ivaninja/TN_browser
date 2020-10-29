@@ -112,21 +112,14 @@ class MainProcess {
 
         this.autoUpdater.on('checking-for-update', () => {
             console.log(`checking-for-update`)
-            this.updateWin = this._createWindow({
-                width: 500,
-                height: 100,
-                kiosk: false,
-                title: this.settings.title + ` - UPDATE`,
-                frame: false,
-                preload: 'update.preload.js'
-            });
 
-            this.updateWin.loadFile('./update.html');
+            this.updateWin.webContents.send('message', {action: 'checkingForUpdate', data: ''});
         });
 
+
         this.autoUpdater.on('update-available', (info) => {
-            this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
             console.log(info)
+            this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
         });
 
         this.autoUpdater.on('update-not-available', (info) => {

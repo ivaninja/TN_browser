@@ -2,18 +2,24 @@ const {ipcRenderer} = require('electron');
 
 
 class UpdatePreload {
-    constructor() {
 
+    constructor() {
+        console.log(`start`)
         this.progressbarSelector = document.querySelector('[role="progressbar"]');
         this.progressSelector = document.querySelector('#progress');
         this.checkSelector = document.querySelector('#check');
 
 
         ipcRenderer.on('message', (event, message) => {
+            console.log(message)
             if (message.action) {
                 this[data.action](message.data)
             }
         });
+    }
+
+    checkingForUpdate(){
+
     }
 
     cheking() {
@@ -36,3 +42,5 @@ class UpdatePreload {
 window.addEventListener('load', () => {
     new UpdatePreload();
 });
+
+
