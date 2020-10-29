@@ -1,4 +1,5 @@
-const {app, BrowserWindow, ipcMain, autoUpdater, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
@@ -47,6 +48,7 @@ class MainProcess {
         this.autoUpdater = autoUpdater;
         this.dialog = dialog;
 
+        this.updateWin = null;
         this.printWin = null;
         this.win = null;
 
@@ -57,10 +59,13 @@ class MainProcess {
     }
 
     async init() {
+
+
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
-        this.start();
+        await this.initUpdates();
+
     }
 
     async initSettings() {
@@ -88,6 +93,61 @@ class MainProcess {
         setDebug(this.settings.debug)
 
         return;
+    }
+
+    initUpdates() {
+
+        this.updateWin = this._createWindow({
+            width: 500,
+            height: 100,
+            kiosk: false,
+            title: this.settings.title + ` - UPDATE`,
+            frame: false,
+            preload: 'update.preload.js'
+        });
+
+        this.updateWin.loadFile('./update.html');
+        this.updateWin.webContents.openDevTools();
+
+
+        this.autoUpdater.on('checking-for-update', () => {
+            console.log(`checking-for-update`)
+            this.updateWin = this._createWindow({
+                width: 500,
+                height: 100,
+                kiosk: false,
+                title: this.settings.title + ` - UPDATE`,
+                frame: false,
+                preload: 'update.preload.js'
+            });
+
+            this.updateWin.loadFile('./update.html');
+        });
+
+        this.autoUpdater.on('update-available', (info) => {
+            this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
+            console.log(info)
+        });
+
+        this.autoUpdater.on('update-not-available', (info) => {
+            this.start();
+        });
+
+        this.autoUpdater.on('error', (err) => {
+            console.log('Error in auto-updater:', err);
+        });
+
+        this.autoUpdater.on('download-progress', (progressObj) => {
+            this.updateWin.webContents.send('message', {action: 'download', data: progressObj.percent});
+        });
+
+        this.autoUpdater.on('update-downloaded', (info) => {
+            setTimeout(() => {
+                this.autoUpdater.quitAndInstall();
+            }, 5000)
+
+        });
+
     }
 
     initEvents() {
@@ -124,11 +184,15 @@ class MainProcess {
 
     }
 
+    start(oldWin = null) {
 
-    start() {
         this.createWindow();
 
         this.win.loadFile('./splash.html');
+
+        if (oldWin) {
+            oldWin.close();
+        }
 
         if (this.settings.debug) {
             this.win.webContents.openDevTools();
@@ -143,24 +207,33 @@ class MainProcess {
         }, this.settings.splashScreenTimeout);
     }
 
-    createWindow() {
-
-        this.win = new BrowserWindow({
-            width: this.settings.width,
-            height: this.settings.height,
-            kiosk: this.settings.kiosk,
-            title: this.settings.title,
-            frame: this.settings.frame,
+    _createWindow({width, height, kiosk, title, frame, preload}) {
+        return new BrowserWindow({
+            width,
+            height,
+            kiosk,
+            title,
+            frame,
             icon: './assets/favicon.ico',
             webPreferences: {
                 nativeWindowOpen: true,
                 webSecurity: false,
                 allowRunningInsecureContent: true,
                 enableRemoteModule: true,
-                preload: path.join(__dirname, 'preload.js'), // use a preload script
+                preload: path.join(__dirname, preload), // use a preload script
             },
         });
+    }
 
+    createWindow() {
+        this.win = this._createWindow({
+            width: this.settings.width,
+            height: this.settings.height,
+            kiosk: this.settings.kiosk,
+            title: this.settings.title,
+            frame: this.settings.frame,
+            preload: 'preload.js'
+        });
     }
 
     getSettings(event, arg) {

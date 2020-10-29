@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update</title>
+    <link rel="stylesheet" href="assets/bootstrap.min.css"/>
+    <style>
+        body, html {
+            height: 100%
+        }
+        .wrapper {
+            height: 100%
+        }
+        .update-container {
+            width: 100%
+        }
+
+        .check>span, .check>.spinner-grow {
+            vertical-align: middle;
+        }
+
+        .progress {
+            display: none;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="d-flex align-items-center wrapper">
+    <div class="update-container p-3">
+
+        <div id="check" class="check">
+            <div class="spinner-grow text-warning"></div> <span>Checking updates, please wait...</span>
+        </div>
+
+        <div id="progress" class="progress">
+            <div class="progress-bar bg-warning" role="progressbar"></div>
+        </div>
+    </div>
+
+
+</div>
+
+</body>
+</html>

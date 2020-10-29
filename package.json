@@ -7,18 +7,38 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node build.js",
-    "pack": "electron-packager . TN_Browser --overwrite --asar --platfrom=win32 --arch=x64 --prune=true --out=./build/ --icon=./assets/favicon.ico"
+    "pack": "electron-packager . TN_Browser --overwrite --asar --platfrom=win32 --arch=x64 --prune=true --out=./build/ --icon=./assets/favicon.ico",
+    "publish": "build  --win -p always"
   },
   "keywords": [],
   "author": "TELENORMA",
   "license": "ISC",
   "devDependencies": {
     "electron": "^10.0.0",
-    "electron-packager": "^15.1.0"
+    "electron-packager": "^15.1.0",
+    "electron-builder": "^22.9.1"
   },
   "dependencies": {
     "electron-is-dev": "^1.2.0",
+    "electron-log": "^4.2.4",
+    "electron-updater": "^4.3.5",
     "electron-winstaller": "^4.0.1",
     "jquery": "^3.5.1"
+  },
+  "build": {
+    "appId": "ag.telenorma.tn-browser",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ivaninja",
+        "repo": "TN_browser "
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "nsis-web"
+      ]
+    }
   }
 }
