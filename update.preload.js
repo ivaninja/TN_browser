@@ -11,14 +11,14 @@ class UpdatePreload {
 
 
         ipcRenderer.on('message', (event, message) => {
-            console.log(message)
+            console.log(`event`, event, message)
             if (message.action) {
-                this[data.action](message.data)
+                this[message.action](message.data)
             }
         });
     }
 
-    checkingForUpdate(){
+    checkingForUpdate() {
 
     }
 
@@ -31,10 +31,12 @@ class UpdatePreload {
         this.checkSelector.style.display = 'none';
         this.progressSelector.style.display = 'block';
         this.progressbarSelector.style.width = '0%';
+        this.progressbarSelector.style.height = '100%';
     }
 
     download(percents) {
         this.progressbarSelector.style.width = `${percents}%`;
+        this.progressbarSelector.style.height = '100%';
     }
 
 }

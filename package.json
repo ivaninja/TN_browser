@@ -1,6 +1,6 @@
 {
   "name": "tn-browser",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Private Browser",
   "main": "index.js",
   "scripts": {
@@ -12,13 +12,14 @@
   "author": "TELENORMA",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^3.0.2",
+    "electron": "^10.0.0",
     "electron-builder": "^20.28.4"
   },
   "dependencies": {
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.2.4",
-    "electron-updater": "^4.3.5"
+    "electron-updater": "^4.3.5",
+    "jquery": "^3.5.1"
   },
   "build": {
     "icon": "./assets/icon_256.ico",

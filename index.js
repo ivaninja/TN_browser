@@ -59,13 +59,10 @@ class MainProcess {
     }
 
     async init() {
-
-
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
         await this.initUpdates();
-
     }
 
     async initSettings() {
@@ -97,18 +94,10 @@ class MainProcess {
 
     initUpdates() {
 
-        this.updateWin = this._createWindow({
-            width: 500,
-            height: 100,
-            kiosk: false,
-            title: this.settings.title + ` - UPDATE`,
-            frame: false,
-            preload: 'update.preload.js'
-        });
-
-        this.updateWin.loadFile('./update.html');
-        this.updateWin.webContents.openDevTools();
-
+        if (isDev) {
+            this.start();
+            return
+        }
 
         this.autoUpdater.on('checking-for-update', () => {
             console.log(`checking-for-update`)
@@ -118,12 +107,13 @@ class MainProcess {
 
 
         this.autoUpdater.on('update-available', (info) => {
-            console.log(info)
+            // console.log(info)
             this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
         });
 
         this.autoUpdater.on('update-not-available', (info) => {
             this.start();
+            this.updateWin.close();
         });
 
         this.autoUpdater.on('error', (err) => {
@@ -141,6 +131,22 @@ class MainProcess {
 
         });
 
+        this.updateWin = this._createWindow({
+            width: 500,
+            height: 100,
+            kiosk: false,
+            title: this.settings.title + ` - UPDATE`,
+            frame: false,
+            preload: 'update.preload.js'
+        });
+
+        this.updateWin.loadFile('./update.html');
+
+        if (this.settings.debug) {
+            this.updateWin.webContents.openDevTools();
+        }
+
+        this.autoUpdater.checkForUpdatesAndNotify();
     }
 
     initEvents() {
@@ -191,9 +197,7 @@ class MainProcess {
             this.win.webContents.openDevTools();
         }
 
-        if (!this.settings.showMenu) {
-            this.win.removeMenu();
-        }
+        this.removeMenu();
 
         setTimeout(() => {
             this.win.loadURL(this.settings.defaultUrl);
@@ -241,6 +245,17 @@ class MainProcess {
         this.win.loadURL(this.settings.defaultUrl);
     }
 
+    removeMenu() {
+        if (!this.settings.showMenu) {
+
+            if (typeof this.win.removeMenu === 'function') {
+                this.win.removeMenu();
+            } else {
+                this.win.setMenu(null);
+            }
+
+        }
+    }
 
     saveSettings(event, arg) {
         // event, arg
@@ -253,15 +268,14 @@ class MainProcess {
         const oldWin = this.win;
 
         this.createWindow();
+
         this.openSettings();
 
         if (this.settings.debug) {
             this.win.webContents.openDevTools();
         }
 
-        if (!this.settings.showMenu) {
-            this.win.removeMenu();
-        }
+        this.removeMenu();
 
         oldWin.close();
     }

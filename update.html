@@ -19,7 +19,8 @@
             vertical-align: middle;
         }
 
-        .progress {
+        .progress-container {
+            color: #8d8c8c;
             display: none;
         }
 
@@ -34,9 +35,13 @@
             <div class="spinner-grow text-warning"></div> <span>Checking updates, please wait...</span>
         </div>
 
-        <div id="progress" class="progress">
-            <div class="progress-bar bg-warning" role="progressbar"></div>
+        <div id="progress" class="progress-container">
+            Downloading updates
+            <div class="progress">
+                <div class="progress-bar bg-warning" role="progressbar"></div>
+            </div>
         </div>
+
     </div>
 
 
