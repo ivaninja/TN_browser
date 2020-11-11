@@ -143,9 +143,15 @@ class AppView {
 
 
         window.addEventListener('keydown', (e) => {
+
             if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
                 ipcRenderer.send('request-mainprocess-action', {action: 'openSettings'});
             }
+
+            if (e.keyCode === 46 && e.shiftKey && e.ctrlKey) { //CTRL+SHIFT+DELETE
+                ipcRenderer.send('request-mainprocess-action', {action: 'flushStore'});
+            }
+
         }, true);
     }
 }

@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog, session} = require('electron');
 const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
@@ -51,6 +51,8 @@ class MainProcess {
         this.updateWin = null;
         this.printWin = null;
         this.win = null;
+
+        this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
         this.settings = DEFAULT_SETTINGS;
         setDebug(this.settings.debug);
@@ -279,6 +281,13 @@ class MainProcess {
 
         oldWin.close();
     }
+
+    async flushStore() {
+        await this.win.webContents.session.clearStorageData();
+        this.win.reload()
+
+    }
+
 
 }
 
