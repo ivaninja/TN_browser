@@ -8,7 +8,8 @@
     <script src="assets/js/settings.js" defer></script>
 </head>
 <body>
-<div class="container">
+
+<div id="test" class="container">
     <h1 class="my-5">Settings</h1>
     <div data-selector="settings-area">
         <form data-selector="form">
@@ -35,9 +36,10 @@
             </div>
 
             <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Default Url:</label>
-                <div class="col-sm-10">
-                    <input type="text" model="defaultUrl" class="form-control"/>
+                <label class="col-sm-2 col-form-label pb-3">Urls:
+                    <div data-selector="addUrl" class="btn btn-success px-3">+</div>
+                </label>
+                <div class="col-sm-10" data-selector="urls-inputs">
                 </div>
             </div>
 
@@ -143,7 +145,6 @@
                     <input model="kiosk" type="checkbox" class="form-check-input"/> Kiosk Mode</label>
             </div>
 
-
             <div class="form-group form-check">
                 <label class="form-check-label">
                     <input model="frame" type="checkbox" class="form-check-input"/> Frame Mode</label>
@@ -154,10 +155,32 @@
                 <button type="submit" class="btn btn-lg btn-success">Save</button>
             </div>
 
-
         </form>
     </div>
     <div id="closeapp"></div>
 </div>
+
+
+<script type="html/template" id="url-input">
+    <div data-selector="{{containerSelector}}" class="row mb-3">
+        <div class="col">
+            <input type="text" data-action="setUrlItemUrl" value="" data-index="{{index}}" class="form-control"/>
+        </div>
+        <div class="col-3">
+            <select data-action="setUrlItemDisplay" data-index="{{index}}" class="form-control">
+                <option disabled>Choose display</option>
+                {{options}}
+            </select>
+        </div>
+        <div class="col-1">
+            <div class="btn btn-danger px-3" data-action="removeUrlItem" data-index="{{index}}">-</div>
+        </div>
+    </div>
+</script>
+
+<script type="html/template" id="display-option">
+    <option {{selected}} value="{{value}}">{{name}}</option>
+</script>
+
 </body>
 </html>

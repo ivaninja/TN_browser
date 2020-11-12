@@ -1,6 +1,7 @@
-const {ipcRenderer, remote} = require('electron');
+const {ipcRenderer, remote, screen} = require('electron');
 const path = require('path');
 
+// console.log(screen)
 
 class AppView {
     constructor() {
@@ -9,7 +10,7 @@ class AppView {
         this.remote = remote;
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
-
+        this.displays = [];
 
         this.css = `
 .control-container {
@@ -34,6 +35,7 @@ class AppView {
     async init(event, arg) {
 
         this.settings = arg.settings;
+        this.displays = arg.displays;
 
         this.win.setTitle(this.settings.title);
 
