@@ -1,7 +1,6 @@
-const {ipcRenderer, remote, screen} = require('electron');
+const {ipcRenderer, remote} = require('electron');
 const path = require('path');
 
-// console.log(screen)
 
 class AppView {
     constructor() {
