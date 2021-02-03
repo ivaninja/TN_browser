@@ -24,6 +24,7 @@ class AppView {
   background-position: center;
   background-size: contain;
   cursor: pointer;
+  z-index: 99999999999;
 }
 .control-container.minimized {
   background-image: url('%_MAXIMIZE_ICON_URL_%');
