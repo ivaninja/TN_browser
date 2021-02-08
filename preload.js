@@ -9,7 +9,7 @@ class AppView {
         this.remote = remote;
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
-
+        this.displays = [];
 
         this.css = `
 .control-container {
@@ -34,6 +34,7 @@ class AppView {
     async init(event, arg) {
 
         this.settings = arg.settings;
+        this.displays = arg.displays;
 
         this.win.setTitle(this.settings.title);
 
@@ -143,9 +144,15 @@ class AppView {
 
 
         window.addEventListener('keydown', (e) => {
+
             if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
                 ipcRenderer.send('request-mainprocess-action', {action: 'openSettings'});
             }
+
+            if (e.keyCode === 46 && e.shiftKey && e.ctrlKey) { //CTRL+SHIFT+DELETE
+                ipcRenderer.send('request-mainprocess-action', {action: 'flushStore'});
+            }
+
         }, true);
     }
 }

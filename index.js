@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog, session, screen} = require('electron');
 const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
@@ -27,7 +27,12 @@ const DEFAULT_SETTINGS = {
     workDirectory,
     showMenu: false,
     isDev,
-    defaultUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
+    urls: [
+        {
+            url: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
+            displayId: 0,
+        }
+    ],
     version,
 };
 
@@ -51,6 +56,9 @@ class MainProcess {
         this.updateWin = null;
         this.printWin = null;
         this.win = null;
+        this.winows = [];
+
+        this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
         this.settings = DEFAULT_SETTINGS;
         setDebug(this.settings.debug);
@@ -146,6 +154,7 @@ class MainProcess {
             this.updateWin.webContents.openDevTools();
         }
 
+
         this.autoUpdater.checkForUpdatesAndNotify();
     }
 
@@ -183,28 +192,33 @@ class MainProcess {
 
     }
 
-    start(oldWin = null) {
+    start() {
 
-        this.createWindow();
+        this.settings.urls.forEach((windowItem) => {
 
-        this.win.loadFile('./splash.html');
+            const win = this.createWindow(windowItem)
+            this.winows.push(win);
 
-        if (oldWin) {
-            oldWin.close();
-        }
 
-        if (this.settings.debug) {
-            this.win.webContents.openDevTools();
-        }
+            win.loadFile('./splash.html');
 
-        this.removeMenu();
+            if (this.settings.debug) {
+                win.webContents.openDevTools();
+            }
 
-        setTimeout(() => {
-            this.win.loadURL(this.settings.defaultUrl);
-        }, this.settings.splashScreenTimeout);
+            this.removeMenu(win);
+
+            setTimeout(() => {
+                    win.loadURL(windowItem.url);
+                },
+                this.settings.splashScreenTimeout)
+            ;
+
+        });
+
     }
 
-    _createWindow({width, height, kiosk, title, frame, preload}) {
+    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0}) {
         return new BrowserWindow({
             width,
             height,
@@ -219,39 +233,64 @@ class MainProcess {
                 enableRemoteModule: true,
                 preload: path.join(__dirname, preload), // use a preload script
             },
+            x,
+            y
         });
     }
 
-    createWindow() {
-        this.win = this._createWindow({
+    createWindow(windowItem) {
+        const displays = screen.getAllDisplays();
+        let externalDisplay = displays.find((display) => {
+            return display.id === windowItem.displayId;
+        });
+
+        let position = {
+            x: 0,
+            y: 0
+        }
+
+        if (externalDisplay) {
+            position.x = externalDisplay.bounds.x + 50;
+            position.y = externalDisplay.bounds.y + 50;
+        }
+        console.log(`externalDisplay`, externalDisplay);
+
+        return this._createWindow({
             width: this.settings.width,
             height: this.settings.height,
             kiosk: this.settings.kiosk,
             title: this.settings.title,
             frame: this.settings.frame,
+            ...position,
             preload: 'preload.js'
         });
+
+        // console.log(`screen`, screen.getAllDisplays())
     }
 
     getSettings(event, arg) {
-        event.sender.send('mainprocess-response', {action: 'init', settings: this.settings});
+        event.sender.send('mainprocess-response', {
+            action: 'init',
+            settings: this.settings,
+            displays: screen.getAllDisplays(),
+        });
     }
 
     openSettings() {
-        this.win.loadFile('./settings.html');
+        this.winows[0].loadFile('./settings.html');
     }
 
     cancelSettings() {
-        this.win.loadURL(this.settings.defaultUrl);
+        this.winows[0].loadURL(this.settings.urls[0].url);
     }
 
-    removeMenu() {
+    removeMenu(win) {
         if (!this.settings.showMenu) {
 
-            if (typeof this.win.removeMenu === 'function') {
-                this.win.removeMenu();
+            if (typeof win.removeMenu === 'function') {
+                win.removeMenu();
             } else {
-                this.win.setMenu(null);
+                win.setMenu(null);
             }
 
         }
@@ -265,19 +304,24 @@ class MainProcess {
             ...arg.data
         };
 
-        const oldWin = this.win;
+        const oldWin = this.winows[0];
 
-        this.createWindow();
+        this.winows[0] = this.createWindow(this.settings.urls[0]);
 
         this.openSettings();
 
         if (this.settings.debug) {
-            this.win.webContents.openDevTools();
+            this.winows[0].webContents.openDevTools();
         }
 
-        this.removeMenu();
+        this.removeMenu(this.winows[0]);
 
         oldWin.close();
+    }
+
+    async flushStore() {
+        await this.winows[0].webContents.session.clearStorageData();
+        this.winows[0].reload();
     }
 
 }
