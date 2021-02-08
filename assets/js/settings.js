@@ -1,4 +1,5 @@
 class AppViewSettings {
+
     constructor(settings) {
 
         const {debug, version, workDirectory, ...other} = settings;

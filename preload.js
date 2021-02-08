@@ -1,5 +1,6 @@
 const {ipcRenderer, remote} = require('electron');
 const path = require('path');
+const url = require('url');
 
 
 class AppView {
@@ -61,6 +62,11 @@ class AppView {
         window.dispatchEvent(settingsEvent);
 
         this.addPageListeners();
+
+        // window.addEventListener('online', alertOnlineStatus)
+        window.addEventListener('offline', () => {
+            this.errorRedirect();
+        })
     }
 
     defineSettings(event, arg) {
@@ -143,7 +149,6 @@ class AppView {
             }
         }
 
-
         window.addEventListener('keydown', (e) => {
 
             if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
@@ -161,4 +166,3 @@ class AppView {
 window.addEventListener('load', () => {
     window._APP_ = new AppView();
 });
-

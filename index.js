@@ -3,7 +3,9 @@ const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
+const url = require('url');
 const {version} = require('./package.json');
+const checkConnection = require('./helpers/checkConnection');
 
 
 const workDirectory = isDev ?
@@ -17,6 +19,7 @@ const DEFAULT_SETTINGS = {
     kiosk: true,
     title: 'TN-Browser',
     frame: true,
+    offlineUrl: '',
     buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
     buttonMargin: '10px 10px 10px 10px',
     showMinimizeButton: false,
@@ -24,6 +27,7 @@ const DEFAULT_SETTINGS = {
     maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
     debug: isDev,
     splashScreenTimeout: 3000,
+    checkOnlineTimeout: 10000,
     workDirectory,
     showMenu: false,
     isDev,
@@ -57,6 +61,9 @@ class MainProcess {
         this.printWin = null;
         this.win = null;
         this.winows = [];
+        this.isRedirectedToError = false;
+
+        this.isOnline = null;
 
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
@@ -67,6 +74,9 @@ class MainProcess {
     }
 
     async init() {
+        this.isOnline = await checkConnection();
+        _logger.log(`isOnline: `, this.isOnline);
+
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
@@ -87,6 +97,7 @@ class MainProcess {
                 this.settings = {
                     ...this.settings,
                     ...settings,
+                    isOnline: this.isOnline,
                 };
 
             } catch (e) {
@@ -102,7 +113,7 @@ class MainProcess {
 
     initUpdates() {
 
-        if (isDev) {
+        if (isDev || !this.isOnline) {
             this.start();
             return
         }
@@ -112,7 +123,6 @@ class MainProcess {
 
             this.updateWin.webContents.send('message', {action: 'checkingForUpdate', data: ''});
         });
-
 
         this.autoUpdater.on('update-available', (info) => {
             // console.log(info)
@@ -154,7 +164,6 @@ class MainProcess {
             this.updateWin.webContents.openDevTools();
         }
 
-
         this.autoUpdater.checkForUpdatesAndNotify();
     }
 
@@ -192,13 +201,38 @@ class MainProcess {
 
     }
 
+    async checkOnline() {
+        this.isOnline = await checkConnection();
+
+        if (!this.isOnline && !this.isRedirectedToError) {
+            this.winows.forEach((win, index) => {
+                let uri = new url.parse(this.settings.urls[index].url);
+                console.log(`uri.hostname`, uri.hostname)
+                win.loadURL(`http://error.${uri.hostname}`);
+            });
+
+            this.isRedirectedToError = true;
+        }
+
+        if(this.isOnline && this.isRedirectedToError){
+            this.winows.forEach((win, index) => {
+                win.loadURL(this.settings.urls[index].url);
+            });
+            this.isRedirectedToError = false;
+        }
+
+        setTimeout(() => {
+            this.checkOnline();
+        }, this.settings.checkOnlineTimeout);
+
+    }
+
     start() {
 
         this.settings.urls.forEach((windowItem) => {
 
             const win = this.createWindow(windowItem)
             this.winows.push(win);
-
 
             win.loadFile('./splash.html');
 
@@ -208,14 +242,19 @@ class MainProcess {
 
             this.removeMenu(win);
 
+            if (!this.isOnline) {
+                let uri = new url.parse(windowItem.url)
+                windowItem.url = `http://error.${uri.hostname}`;
+                this.isRedirectedToError = true;
+            }
+
             setTimeout(() => {
-                    win.loadURL(windowItem.url);
-                },
-                this.settings.splashScreenTimeout)
-            ;
+                win.loadURL(windowItem.url);
+            }, this.settings.splashScreenTimeout);
 
         });
 
+        this.checkOnline();
     }
 
     _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0}) {
