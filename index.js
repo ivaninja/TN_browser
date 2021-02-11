@@ -25,9 +25,11 @@ const DEFAULT_SETTINGS = {
     showMinimizeButton: false,
     minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
     maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
+    errorUrl: 'http://error.kassesvn.tn-rechenzentrum1.de/',
     debug: isDev,
     splashScreenTimeout: 3000,
     checkOnlineTimeout: 10000,
+    devShowPrintWindow: false,
     workDirectory,
     showMenu: false,
     isDev,
@@ -106,7 +108,7 @@ class MainProcess {
 
         }
 
-        setDebug(this.settings.debug)
+        setDebug(this.settings.debug);
 
         return;
     }
@@ -177,7 +179,7 @@ class MainProcess {
         this.ipcMain.on('print', (event, content) => {
 
             this.printWin = new BrowserWindow({
-                show: false,
+                show: this.settings.devShowPrintWindow,
                 webPreferences: {
                     nativeWindowOpen: true,
                     webSecurity: false,
@@ -206,15 +208,13 @@ class MainProcess {
 
         if (!this.isOnline && !this.isRedirectedToError) {
             this.winows.forEach((win, index) => {
-                let uri = new url.parse(this.settings.urls[index].url);
-                console.log(`uri.hostname`, uri.hostname)
-                win.loadURL(`http://error.${uri.hostname}`);
+                win.loadURL(this.settings.errorUrl);
             });
 
             this.isRedirectedToError = true;
         }
 
-        if(this.isOnline && this.isRedirectedToError){
+        if (this.isOnline && this.isRedirectedToError) {
             this.winows.forEach((win, index) => {
                 win.loadURL(this.settings.urls[index].url);
             });
@@ -243,8 +243,8 @@ class MainProcess {
             this.removeMenu(win);
 
             if (!this.isOnline) {
-                let uri = new url.parse(windowItem.url)
-                windowItem.url = `http://error.${uri.hostname}`;
+                console.log(this.settings.errorUrl);
+                windowItem.url = this.settings.errorUrl;
                 this.isRedirectedToError = true;
             }
 
