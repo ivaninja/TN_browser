@@ -215,7 +215,7 @@ class MainProcess {
         });
 
         this.ipcMain.on('readyToPrint', (event) => {
-            this.printWin.webContents.print({silent: true});
+            this.printWin.webContents.print({silent: true,  margins: { marginType : 'none'}});
         });
 
     }

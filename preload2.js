@@ -9,12 +9,10 @@ function loaded(node) {
 ipcRenderer.on('setContent', async (event, content) => {
     document.body.innerHTML = content;
     let images = document.querySelectorAll(`img`);
-    console.log(`images`, images)
 
     let promises = [...images].map((img) => loaded(img));
     try {
-        let result = await Promise.all(promises);
-        console.log(`images loaded: `, result);
+        await Promise.all(promises);
     } catch (e) {
         console.error(`images not loaded`, e)
     }
