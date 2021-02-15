@@ -4,6 +4,13 @@ class AppViewSettings {
 
         const {debug, version, workDirectory, ...other} = settings;
 
+        this._defaultUrlItem = {
+            url: '',
+            displayId: 0,
+            offlineUrl: '',
+            zoom: 1
+        };
+
         this.model = {
             ...other
         };
@@ -26,8 +33,6 @@ class AppViewSettings {
                 this.left = Number(test[3]);
             },
         };
-
-        this.urlModel = [];
 
         this.displays = _APP_.displays;
 
@@ -53,10 +58,7 @@ class AppViewSettings {
 
         this.addUrlSel.addEventListener('click', () => {
 
-            this.model.urls.push({
-                url: '',
-                displayId: 0,
-            });
+            this.model.urls.push(this._defaultUrlItem);
 
             this.renderUrlsInputs();
         });
@@ -70,6 +72,20 @@ class AppViewSettings {
                 let eventType = 'onkeyup';
                 let valueName = 'value';
                 const modelName = item.getAttribute('model');
+                const dataSetter = item.getAttribute('data-setter');
+                const dataGetter = item.getAttribute('data-getter');
+
+                let getter = (value) => value;
+                let setter = (value) => value;
+
+                if (dataGetter) {
+                    getter = this[dataGetter];
+                }
+
+                if (dataSetter) {
+                    setter = this[dataSetter];
+                }
+
                 let AsType = String;
 
                 switch (item.tagName) {
@@ -91,9 +107,9 @@ class AppViewSettings {
                         break;
                 }
 
-                item[valueName] = this.model[modelName];
+                item[valueName] = getter(this.model[modelName]);
                 item[eventType] = (ev) => {
-                    this.model[modelName] = AsType(ev.target[valueName])
+                    this.model[modelName] = setter(AsType(ev.target[valueName]));
                 }
             });
 
@@ -120,6 +136,14 @@ class AppViewSettings {
                 })
     }
 
+    getZoom(value) {
+        return value * 100;
+    }
+
+    setZoom(value) {
+        return value / 100;
+    }
+
     removeUrlsItem(index) {
         this.model.urls.splice(index, 1);
         this.renderUrlsInputs();
@@ -132,12 +156,16 @@ class AppViewSettings {
             this.urlsInputs.innerHTML += this.createUrlInput({
                 index,
                 displayId: item.displayId,
+                // errorUrl: item.offlineUrl,
+                // zoom: 1,
             });
         });
 
         const removeUrlItem = document.querySelectorAll(`[data-action="removeUrlItem"]`);
         const setUrlItemDisplay = document.querySelectorAll(`[data-action="setUrlItemDisplay"]`);
         const setUrlItemUrl = document.querySelectorAll(`[data-action="setUrlItemUrl"]`);
+        const setOfflineItemUrl = document.querySelectorAll(`[data-action="setOfflineItemUrl"]`);
+        const setZoomItemUrl = document.querySelectorAll(`[data-action="setZoomItemUrl"]`);
 
         removeUrlItem.forEach((item, index) => {
             item.onclick = (ev) => {
@@ -160,7 +188,22 @@ class AppViewSettings {
             item.value = this.model.urls[index].url;
             item.onkeyup = (ev) => {
                 this.model.urls[Number(ev.target.dataset.index)].url = ev.target.value;
-                console.log(this.model.urls)
+                // console.log(this.model.urls)
+            };
+        });
+
+        setOfflineItemUrl.forEach((item, index) => {
+            item.value = this.model.urls[index].offlineUrl;
+            item.onkeyup = (ev) => {
+                this.model.urls[Number(ev.target.dataset.index)].offlineUrl = ev.target.value;
+                // console.log(this.model.urls)
+            };
+        });
+
+        setZoomItemUrl.forEach((item, index) => {
+            item.value = this.getZoom(this.model.urls[index].zoom);
+            item.onkeyup = (ev) => {
+                this.model.urls[Number(ev.target.dataset.index)].zoom = this.setZoom(ev.target.value);
             };
         });
 

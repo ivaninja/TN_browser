@@ -1,4 +1,4 @@
-const {ipcRenderer, remote} = require('electron');
+const {ipcRenderer, remote, webFrame} = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -11,6 +11,7 @@ class AppView {
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
         this.displays = [];
+        this.index = this.win.webContents.browserWindowOptions.index;
 
         this.css = `
 .control-container {
@@ -31,9 +32,11 @@ class AppView {
   background-image: url('%_MAXIMIZE_ICON_URL_%');
 }`;
 
+
     }
 
     async init(event, arg) {
+
 
         this.settings = arg.settings;
         this.displays = arg.displays;
@@ -66,7 +69,15 @@ class AppView {
         // window.addEventListener('online', alertOnlineStatus)
         window.addEventListener('offline', () => {
             this.errorRedirect();
-        })
+        });
+        console.log(`ccccccccccccccccccccccc`);
+        // console.log(`this.index `, this.index);
+        if (this.index !== null) {
+
+            console.log(`this.index `,this.settings.urls[this.index]);
+            webFrame.setZoomFactor(this.settings.urls[this.index].zoom);
+        }
+
     }
 
     defineSettings(event, arg) {

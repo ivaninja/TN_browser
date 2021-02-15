@@ -12,6 +12,7 @@ const workDirectory = isDev ?
     path.resolve(`${path.dirname(process.execPath)}/../../../`) : // ../../../node_modules/electron/dist
     path.resolve(`${path.dirname(process.execPath)}`);
 
+const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
 
 const DEFAULT_SETTINGS = {
     width: 800,
@@ -25,7 +26,6 @@ const DEFAULT_SETTINGS = {
     showMinimizeButton: false,
     minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
     maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
-    errorUrl: 'http://error.kassesvn.tn-rechenzentrum1.de/',
     debug: isDev,
     splashScreenTimeout: 3000,
     checkOnlineTimeout: 10000,
@@ -37,6 +37,8 @@ const DEFAULT_SETTINGS = {
         {
             url: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
             displayId: 0,
+            offlineUrl: 'http://error.kassesvn.tn-rechenzentrum1.de/',
+            zoom: 1,
         }
     ],
     version,
@@ -102,6 +104,8 @@ class MainProcess {
                     isOnline: this.isOnline,
                 };
 
+                this.settingsMigration();
+
             } catch (e) {
                 console.error(`Something went wrong! settings.json is not JSON`);
             }
@@ -113,10 +117,23 @@ class MainProcess {
         return;
     }
 
+    settingsMigration() {
+        this.settings.urls = this.settings.urls.map((item) => {
+            if (!item.hasOwnProperty('offlineUrl')) {
+                item.offlineUrl = defaultOfflineUrl;
+            }
+
+            if (!item.hasOwnProperty('zoom')) {
+                item.zoom = 1;
+            }
+            return item;
+        });
+    }
+
     initUpdates() {
 
         if (isDev || !this.isOnline) {
-            this.start();
+            this.start({});
             return
         }
 
@@ -132,7 +149,7 @@ class MainProcess {
         });
 
         this.autoUpdater.on('update-not-available', (info) => {
-            this.start();
+            this.start({});
             this.updateWin.close();
         });
 
@@ -208,7 +225,7 @@ class MainProcess {
 
         if (!this.isOnline && !this.isRedirectedToError) {
             this.winows.forEach((win, index) => {
-                win.loadURL(this.settings.errorUrl);
+                win.loadURL(this.settings.urls[index].offlineUrl);
             });
 
             this.isRedirectedToError = true;
@@ -227,14 +244,15 @@ class MainProcess {
 
     }
 
-    start() {
+    start({skipSplash = false}) {
 
-        this.settings.urls.forEach((windowItem) => {
+        this.settings.urls.forEach((windowItem, index) => {
 
-            const win = this.createWindow(windowItem)
+            const win = this.createWindow({...windowItem, index})
             this.winows.push(win);
 
             win.loadFile('./splash.html');
+
 
             if (this.settings.debug) {
                 win.webContents.openDevTools();
@@ -243,21 +261,20 @@ class MainProcess {
             this.removeMenu(win);
 
             if (!this.isOnline) {
-                console.log(this.settings.errorUrl);
-                windowItem.url = this.settings.errorUrl;
+                windowItem.url = windowItem.offlineUrl;
                 this.isRedirectedToError = true;
             }
 
             setTimeout(() => {
                 win.loadURL(windowItem.url);
-            }, this.settings.splashScreenTimeout);
+            }, skipSplash ? 10 : this.settings.splashScreenTimeout);
 
         });
 
         this.checkOnline();
     }
 
-    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0}) {
+    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0, zoomFactor = 1, index = null}) {
         return new BrowserWindow({
             width,
             height,
@@ -265,6 +282,7 @@ class MainProcess {
             title,
             frame,
             icon: './assets/favicon.ico',
+            index,
             webPreferences: {
                 nativeWindowOpen: true,
                 webSecurity: false,
@@ -292,17 +310,20 @@ class MainProcess {
             position.x = externalDisplay.bounds.x + 50;
             position.y = externalDisplay.bounds.y + 50;
         }
-        console.log(`externalDisplay`, externalDisplay);
 
-        return this._createWindow({
+        const win = this._createWindow({
             width: this.settings.width,
             height: this.settings.height,
             kiosk: this.settings.kiosk,
             title: this.settings.title,
             frame: this.settings.frame,
+            index: windowItem.index,
             ...position,
             preload: 'preload.js'
         });
+
+
+        return win;
 
         // console.log(`screen`, screen.getAllDisplays())
     }
@@ -325,13 +346,11 @@ class MainProcess {
 
     removeMenu(win) {
         if (!this.settings.showMenu) {
-
             if (typeof win.removeMenu === 'function') {
                 win.removeMenu();
             } else {
                 win.setMenu(null);
             }
-
         }
     }
 
@@ -343,19 +362,24 @@ class MainProcess {
             ...arg.data
         };
 
-        const oldWin = this.winows[0];
+        const oldWindows = [].concat(this.winows);
+        this.winows = [];
 
-        this.winows[0] = this.createWindow(this.settings.urls[0]);
+        oldWindows.forEach((item) => {
+            item.hide();
+        })
 
-        this.openSettings();
+        this.start({skipSplash: true});
 
-        if (this.settings.debug) {
-            this.winows[0].webContents.openDevTools();
-        }
+        oldWindows.forEach((item) => {
+            item.close();
+        });
 
-        this.removeMenu(this.winows[0]);
+        setTimeout(()=> this.openSettings(), 10);
 
-        oldWin.close();
+        // console.log(oldWindows)
+
+
     }
 
     async flushStore() {
