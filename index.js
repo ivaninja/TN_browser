@@ -218,6 +218,13 @@ class MainProcess {
             this.printWin.webContents.print({silent: true,  margins: { marginType : 'none'}});
         });
 
+        this.app.on('second-instance', (event, commandLine, workingDirectory) => {
+            // Someone tried to run a second instance, we should focus our window.
+            console.log(`second instance event:`, event );
+            console.log(`second instance commandLine:`, commandLine );
+            console.log(`second instance workingDirectory:`, workingDirectory );
+        });
+
     }
 
     async checkOnline() {
