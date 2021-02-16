@@ -1,105 +1,74 @@
 const {app, BrowserWindow, ipcMain, dialog, session, screen} = require('electron');
-const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
-const url = require('url');
+
 const {version} = require('./package.json');
+const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
-
-
-const workDirectory = isDev ?
-    path.resolve(`${path.dirname(process.execPath)}/../../../`) : // ../../../node_modules/electron/dist
-    path.resolve(`${path.dirname(process.execPath)}`);
+const randomId = require('./helpers/randomId');
+const secondInstance = require('./processComponents/secondInstance');
+const onPrint = require('./processComponents/onPrint');
+const initUpdates = require('./processComponents/initUpdates');
+const workDirectory = require('./processComponents/workDirectory');
+const readyToPrint = require('./processComponents/readyToPrint');
+const defaultSettings = require('./processComponents/defaultSettings');
 
 const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
 
-const DEFAULT_SETTINGS = {
-    width: 800,
-    height: 600,
-    kiosk: true,
-    title: 'TN-Browser',
-    frame: true,
-    offlineUrl: '',
-    buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
-    buttonMargin: '10px 10px 10px 10px',
-    showMinimizeButton: false,
-    minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
-    maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
-    debug: isDev,
-    splashScreenTimeout: 3000,
-    checkOnlineTimeout: 10000,
-    devShowPrintWindow: false,
-    workDirectory,
-    showMenu: false,
-    isDev,
-    urls: [
-        {
-            url: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
-            displayId: 0,
-            offlineUrl: 'http://error.kassesvn.tn-rechenzentrum1.de/',
-            zoom: 1,
-        }
-    ],
-    version,
-};
-
-function setDebug(debug) {
-    global._logger = new Proxy(console, {
-        get: function (target, name) {
-            return debug === true ? target[name]
-                : () => {
-                };
-        }
-    });
-}
 
 class MainProcess {
     constructor() {
         this.app = app;
         this.ipcMain = ipcMain;
-        this.autoUpdater = autoUpdater;
+        this.autoUpdater = null;
         this.dialog = dialog;
+        this.dirPath = __dirname;
+        this.isDev = isDev;
+        this.workDirectory = workDirectory(this.isDev);
 
-        this.updateWin = null;
+        this.updateWin = null; // used ./processComponents/initUpdates.js
         this.printWin = null;
         this.win = null;
-        this.winows = [];
+        this.windows = [];
+        this.closedWindowIndexes = [];
         this.isRedirectedToError = false;
-
         this.isOnline = null;
-
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
-        this.settings = DEFAULT_SETTINGS;
-        setDebug(this.settings.debug);
+        this.settings = defaultSettings({version, workDirectory: this.workDirectory, isDev});
+
+        /* - Bind Methods -*/
+        this.initUpdates = initUpdates.bind(this);
+        this.setDebug = setDebug.bind(this);
+
+        this.setDebug(this.settings.debug);
 
         this.init();
     }
 
     async init() {
+        const isMain = this.app.requestSingleInstanceLock();
+
+        if (!isMain) {
+            console.error(`another instance already running`);
+            this.app.quit();
+            return;
+        }
+
         this.isOnline = await checkConnection();
         _logger.log(`isOnline: `, this.isOnline);
 
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
-
-        console.log(`setup second-instance monit`); // todo remove this after tests
-
-        this.app.on('second-instance', (event, commandLine, workingDirectory) => {
-            console.log(`Second instance, event:`, event);
-            console.log(`Second instance, commandLine:`, commandLine);
-            console.log(`Second instance, workingDirectory:`, workingDirectory);
-        });
-
         await this.initUpdates();
     }
 
     async initSettings() {
-        _logger.log(`path: `, workDirectory);
+        _logger.log(`path: `, this.workDirectory);
 
-        const settingsFilePath = path.resolve(`${workDirectory}/settings.json`);
+        const settingsFilePath = path.resolve(`${this.workDirectory}/settings.json`);
 
         if (fs.existsSync(settingsFilePath)) {
             const settingsFile = fs.readFileSync(settingsFilePath, 'utf8');
@@ -118,7 +87,6 @@ class MainProcess {
             } catch (e) {
                 console.error(`Something went wrong! settings.json is not JSON`);
             }
-
         }
 
         setDebug(this.settings.debug);
@@ -139,93 +107,18 @@ class MainProcess {
         });
     }
 
-    initUpdates() {
-
-        if (isDev || !this.isOnline) {
-            this.start({});
-            return
-        }
-
-        this.autoUpdater.on('checking-for-update', () => {
-            console.log(`checking-for-update`)
-
-            this.updateWin.webContents.send('message', {action: 'checkingForUpdate', data: ''});
-        });
-
-        this.autoUpdater.on('update-available', (info) => {
-            // console.log(info)
-            this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
-        });
-
-        this.autoUpdater.on('update-not-available', (info) => {
-            this.start({});
-            this.updateWin.close();
-        });
-
-        this.autoUpdater.on('error', (err) => {
-            console.log('Error in auto-updater:', err);
-        });
-
-        this.autoUpdater.on('download-progress', (progressObj) => {
-            this.updateWin.webContents.send('message', {action: 'download', data: progressObj.percent});
-        });
-
-        this.autoUpdater.on('update-downloaded', (info) => {
-            setTimeout(() => {
-                this.autoUpdater.quitAndInstall();
-            }, 5000)
-
-        });
-
-        this.updateWin = this._createWindow({
-            width: 500,
-            height: 100,
-            kiosk: false,
-            title: this.settings.title + ` - UPDATE`,
-            frame: false,
-            preload: 'update.preload.js'
-        });
-
-        this.updateWin.loadFile('./update.html');
-
-        if (this.settings.debug) {
-            this.updateWin.webContents.openDevTools();
-        }
-
-        this.autoUpdater.checkForUpdatesAndNotify();
-    }
-
     initEvents() {
+
+        this.app.on('second-instance', secondInstance.bind(this));
 
         this.ipcMain.on('request-mainprocess-action', (event, arg) => {
             _logger.log('action:', arg.action)
             this[arg.action](event, arg);
         });
 
-        this.ipcMain.on('print', (event, content) => {
+        this.ipcMain.on('print', onPrint.bind(this));
 
-            this.printWin = new BrowserWindow({
-                show: this.settings.devShowPrintWindow,
-                webPreferences: {
-                    nativeWindowOpen: true,
-                    webSecurity: false,
-                    allowRunningInsecureContent: true,
-                    enableRemoteModule: true,
-                    nodeIntegration: true,
-                    preload: path.join(__dirname, 'preload2.js'),
-                },
-            });
-
-            this.printWin.loadURL('file://' + __dirname + '/receipt.html');
-
-            this.printWin.webContents.on('did-finish-load', () => {
-                this.printWin.webContents.send('setContent', content);
-            });
-        });
-
-        this.ipcMain.on('readyToPrint', (event) => {
-            this.printWin.webContents.print({silent: true, margins: {marginType: 'none'}});
-        });
+        this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
 
     }
 
@@ -233,7 +126,7 @@ class MainProcess {
         this.isOnline = await checkConnection();
 
         if (!this.isOnline && !this.isRedirectedToError) {
-            this.winows.forEach((win, index) => {
+            this.windows.forEach((win, index) => {
                 win.loadURL(this.settings.urls[index].offlineUrl);
             });
 
@@ -241,9 +134,11 @@ class MainProcess {
         }
 
         if (this.isOnline && this.isRedirectedToError) {
-            this.winows.forEach((win, index) => {
+
+            this.windows.forEach((win, index) => {
                 win.loadURL(this.settings.urls[index].url);
             });
+
             this.isRedirectedToError = false;
         }
 
@@ -253,37 +148,57 @@ class MainProcess {
 
     }
 
+    reopenWindows() {
+        this.closedWindowIndexes.forEach((itemIndex,) => {
+            this.openWorkWindow({windowItem: this.settings.urls[itemIndex], itemIndex, skipSplash: true});
+        });
+        this.closedWindowIndexes = [];
+    }
+
+    openWorkWindow({windowItem, index, skipSplash}) {
+        const sign = randomId();
+        const win = this.createWindow({...windowItem, sign, index});
+        this.windows.push(win);
+
+        win.on('close', (event) => {
+            const foundIndex = this.windows.findIndex((item) => {
+                return item.webContents.browserWindowOptions.preference.sign === sign;
+            });
+
+            if (foundIndex !== -1) {
+                this.windows.splice(foundIndex, 1);
+                this.closedWindowIndexes.push(index);
+            }
+        });
+
+        win.loadFile('./splash.html');
+
+        if (this.settings.debug) {
+            win.webContents.openDevTools();
+        }
+
+        this.removeMenu(win);
+
+        if (!this.isOnline) {
+            windowItem.url = windowItem.offlineUrl;
+            this.isRedirectedToError = true;
+        }
+
+        setTimeout(() => {
+            win.loadURL(windowItem.url);
+        }, skipSplash ? 10 : this.settings.splashScreenTimeout);
+    }
+
     start({skipSplash = false}) {
 
         this.settings.urls.forEach((windowItem, index) => {
-
-            const win = this.createWindow({...windowItem, index})
-            this.winows.push(win);
-
-            win.loadFile('./splash.html');
-
-
-            if (this.settings.debug) {
-                win.webContents.openDevTools();
-            }
-
-            this.removeMenu(win);
-
-            if (!this.isOnline) {
-                windowItem.url = windowItem.offlineUrl;
-                this.isRedirectedToError = true;
-            }
-
-            setTimeout(() => {
-                win.loadURL(windowItem.url);
-            }, skipSplash ? 10 : this.settings.splashScreenTimeout);
-
+            this.openWorkWindow({windowItem, index, skipSplash});
         });
 
         this.checkOnline();
     }
 
-    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0, zoomFactor = 1, index = null}) {
+    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0, preference = null}) {
         return new BrowserWindow({
             width,
             height,
@@ -291,7 +206,7 @@ class MainProcess {
             title,
             frame,
             icon: './assets/favicon.ico',
-            index,
+            preference,
             webPreferences: {
                 nativeWindowOpen: true,
                 webSecurity: false,
@@ -326,7 +241,7 @@ class MainProcess {
             kiosk: this.settings.kiosk,
             title: this.settings.title,
             frame: this.settings.frame,
-            index: windowItem.index,
+            preference: windowItem,
             ...position,
             preload: 'preload.js'
         });
@@ -346,11 +261,11 @@ class MainProcess {
     }
 
     openSettings() {
-        this.winows[0].loadFile('./settings.html');
+        this.windows[0].loadFile('./settings.html');
     }
 
     cancelSettings() {
-        this.winows[0].loadURL(this.settings.urls[0].url);
+        this.windows[0].loadURL(this.settings.urls[0].url);
     }
 
     removeMenu(win) {
@@ -365,14 +280,14 @@ class MainProcess {
 
     saveSettings(event, arg) {
         // event, arg
-        fs.writeFileSync(`${workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
+        fs.writeFileSync(`${this.workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
         this.settings = {
             ...this.settings,
             ...arg.data
         };
 
-        const oldWindows = [].concat(this.winows);
-        this.winows = [];
+        const oldWindows = [].concat(this.windows);
+        this.windows = [];
 
         oldWindows.forEach((item) => {
             item.hide();
@@ -388,12 +303,13 @@ class MainProcess {
 
         // console.log(oldWindows)
 
-
     }
 
     async flushStore() {
-        await this.winows[0].webContents.session.clearStorageData();
-        this.winows[0].reload();
+        for (let i in this.windows) {
+            await this.windows[i].webContents.session.clearStorageData();
+            this.windows[i].reload();
+        }
     }
 
 }

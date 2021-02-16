@@ -11,7 +11,7 @@ class AppView {
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
         this.displays = [];
-        this.index = this.win.webContents.browserWindowOptions.index;
+        this.preference = this.win.webContents.browserWindowOptions.preference;
 
         this.css = `
 .control-container {
@@ -66,16 +66,8 @@ class AppView {
 
         this.addPageListeners();
 
-        // window.addEventListener('online', alertOnlineStatus)
-        window.addEventListener('offline', () => {
-            this.errorRedirect();
-        });
-        console.log(`ccccccccccccccccccccccc`);
-        // console.log(`this.index `, this.index);
-        if (this.index !== null) {
-
-            console.log(`this.index `,this.settings.urls[this.index]);
-            webFrame.setZoomFactor(this.settings.urls[this.index].zoom);
+        if (this.preference !== null) {
+            webFrame.setZoomFactor(this.preference.zoom);
         }
 
     }
