@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "build --win -p always"
+    "publish": "build --win -p always",
+    "build": "build --win"
   },
   "keywords": [],
   "author": "TELENORMA",

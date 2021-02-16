@@ -218,6 +218,8 @@ class MainProcess {
             this.printWin.webContents.print({silent: true,  margins: { marginType : 'none'}});
         });
 
+        console.log(`setup second-instance monit`); // todo remove this after tests
+
         this.app.on('second-instance', (event, commandLine, workingDirectory) => {
             // Someone tried to run a second instance, we should focus our window.
             console.log(`second instance event:`, event );
