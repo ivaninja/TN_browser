@@ -84,6 +84,15 @@ class MainProcess {
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
+
+        console.log(`setup second-instance monit`); // todo remove this after tests
+
+        this.app.on('second-instance', (event, commandLine, workingDirectory) => {
+            console.log(`Second instance, event:`, event);
+            console.log(`Second instance, commandLine:`, commandLine);
+            console.log(`Second instance, workingDirectory:`, workingDirectory);
+        });
+
         await this.initUpdates();
     }
 
@@ -215,16 +224,7 @@ class MainProcess {
         });
 
         this.ipcMain.on('readyToPrint', (event) => {
-            this.printWin.webContents.print({silent: true,  margins: { marginType : 'none'}});
-        });
-
-        console.log(`setup second-instance monit`); // todo remove this after tests
-
-        this.app.on('second-instance', (event, commandLine, workingDirectory) => {
-            // Someone tried to run a second instance, we should focus our window.
-            console.log(`second instance event:`, event );
-            console.log(`second instance commandLine:`, commandLine );
-            console.log(`second instance workingDirectory:`, workingDirectory );
+            this.printWin.webContents.print({silent: true, margins: {marginType: 'none'}});
         });
 
     }
@@ -384,7 +384,7 @@ class MainProcess {
             item.close();
         });
 
-        setTimeout(()=> this.openSettings(), 10);
+        setTimeout(() => this.openSettings(), 10);
 
         // console.log(oldWindows)
 
