@@ -28,6 +28,7 @@ class MainProcess {
     constructor() {
         this.app = app;
         this.ipcMain = ipcMain;
+        this.screen = screen;
         this.autoUpdater = null;
         this.dialog = dialog;
         this.dirPath = __dirname;
@@ -200,7 +201,7 @@ class MainProcess {
     }
 
     createWindow(windowItem) {
-        const displays = screen.getAllDisplays();
+        const displays = this.screen.getAllDisplays();
         let externalDisplay = displays.find((display) => {
             return display.id === windowItem.displayId;
         });
@@ -229,7 +230,6 @@ class MainProcess {
 
         return win;
 
-        // console.log(`screen`, screen.getAllDisplays())
     }
 
     removeMenu(win) {
