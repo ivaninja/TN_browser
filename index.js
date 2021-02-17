@@ -7,12 +7,19 @@ const {version} = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
 const randomId = require('./helpers/randomId');
+
+const requestMainProcessAction = require('./processComponents/requestMainProcessAction');
 const secondInstance = require('./processComponents/secondInstance');
 const onPrint = require('./processComponents/onPrint');
 const initUpdates = require('./processComponents/initUpdates');
 const workDirectory = require('./processComponents/workDirectory');
 const readyToPrint = require('./processComponents/readyToPrint');
 const defaultSettings = require('./processComponents/defaultSettings');
+const checkOnline = require('./processComponents/checkOnline');
+
+const openSettings = require('./actions/openSettings');
+const getSettings = require('./actions/getSettings');
+const cancelSettings = require('./actions/cancelSettings');
 
 const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
 
@@ -41,6 +48,13 @@ class MainProcess {
         /* - Bind Methods -*/
         this.initUpdates = initUpdates.bind(this);
         this.setDebug = setDebug.bind(this);
+        this.checkOnline = checkOnline.bind(this);
+
+        /* - Bind Actions -*/
+        this.openSettings = openSettings.bind(this);
+        this.getSettings = getSettings.bind(this);
+        this.cancelSettings = cancelSettings.bind(this);
+
 
         this.setDebug(this.settings.debug);
 
@@ -108,49 +122,15 @@ class MainProcess {
     }
 
     initEvents() {
-
         this.app.on('second-instance', secondInstance.bind(this));
-
-        this.ipcMain.on('request-mainprocess-action', (event, arg) => {
-            _logger.log('action:', arg.action)
-            this[arg.action](event, arg);
-        });
-
+        this.ipcMain.on('request-mainprocess-action', requestMainProcessAction.bind(this));
         this.ipcMain.on('print', onPrint.bind(this));
-
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
-
-    }
-
-    async checkOnline() {
-        this.isOnline = await checkConnection();
-
-        if (!this.isOnline && !this.isRedirectedToError) {
-            this.windows.forEach((win, index) => {
-                win.loadURL(this.settings.urls[index].offlineUrl);
-            });
-
-            this.isRedirectedToError = true;
-        }
-
-        if (this.isOnline && this.isRedirectedToError) {
-
-            this.windows.forEach((win, index) => {
-                win.loadURL(this.settings.urls[index].url);
-            });
-
-            this.isRedirectedToError = false;
-        }
-
-        setTimeout(() => {
-            this.checkOnline();
-        }, this.settings.checkOnlineTimeout);
-
     }
 
     reopenWindows() {
-        this.closedWindowIndexes.forEach((itemIndex,) => {
-            this.openWorkWindow({windowItem: this.settings.urls[itemIndex], itemIndex, skipSplash: true});
+        this.closedWindowIndexes.forEach((itemIndex) => {
+            this.openWorkWindow({windowItem: this.settings.urls[itemIndex], index: itemIndex, skipSplash: true});
         });
         this.closedWindowIndexes = [];
     }
@@ -168,6 +148,8 @@ class MainProcess {
             if (foundIndex !== -1) {
                 this.windows.splice(foundIndex, 1);
                 this.closedWindowIndexes.push(index);
+            } else {
+                console.error(`close foundIndex not found`, foundIndex, windowItem)
             }
         });
 
@@ -190,11 +172,9 @@ class MainProcess {
     }
 
     start({skipSplash = false}) {
-
         this.settings.urls.forEach((windowItem, index) => {
             this.openWorkWindow({windowItem, index, skipSplash});
         });
-
         this.checkOnline();
     }
 
@@ -250,22 +230,6 @@ class MainProcess {
         return win;
 
         // console.log(`screen`, screen.getAllDisplays())
-    }
-
-    getSettings(event, arg) {
-        event.sender.send('mainprocess-response', {
-            action: 'init',
-            settings: this.settings,
-            displays: screen.getAllDisplays(),
-        });
-    }
-
-    openSettings() {
-        this.windows[0].loadFile('./settings.html');
-    }
-
-    cancelSettings() {
-        this.windows[0].loadURL(this.settings.urls[0].url);
     }
 
     removeMenu(win) {
