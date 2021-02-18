@@ -156,6 +156,12 @@ class MainProcess {
 
         win.loadFile('./splash.html');
 
+        win.webContents.once('did-finish-load', ()=>{
+            setTimeout(() => {
+                win.loadURL(windowItem.url);
+            }, skipSplash ? 10 : this.settings.splashScreenTimeout);
+        })
+
         if (this.settings.debug) {
             win.webContents.openDevTools();
         }
@@ -167,9 +173,6 @@ class MainProcess {
             this.isRedirectedToError = true;
         }
 
-        setTimeout(() => {
-            win.loadURL(windowItem.url);
-        }, skipSplash ? 10 : this.settings.splashScreenTimeout);
     }
 
     start({skipSplash = false}) {
