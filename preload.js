@@ -2,6 +2,85 @@ const {ipcRenderer, remote, webFrame} = require('electron');
 const path = require('path');
 const url = require('url');
 
+/*
+
+let f = EventTarget.prototype.addEventListener;
+EventTarget.prototype.addEventListener = function (type, fn, capture) {
+
+    switch (type) {
+        case 'click' :
+            console.log('Added Event Listener: on: ', type, this);
+            console.log(fn.toString())
+
+            break;
+
+        default:
+
+    }
+
+    this.f = f;
+    this.f(type, fn, capture);
+
+}
+
+*/
+
+function listElementEventListeners(selector = 'div') {
+
+    const currentElement = document.querySelector(selector);
+    console.log(currentElement)
+
+
+    const types = [];
+
+    for (let ev in window) {
+        if (/^on/.test(ev)) types[types.length] = ev;
+    }
+
+    let elements = [];
+    // for (let i = 0; i < allElements.length; i++) {
+
+
+    // Events defined in attributes
+    for (let j = 0; j < types.length; j++) {
+        // console.log(types[j])
+        if (typeof currentElement[types[j]] === 'function') {
+
+            elements.push({
+                "node": currentElement,
+                "type": types[j],
+                "func": currentElement[types[j]].toString(),
+            });
+        }
+    }
+
+
+    // Events defined with addEventListener
+    if (typeof getEventListeners === 'function') {
+
+
+        let evts = getEventListeners(currentElement);
+
+        console.log(`_getEventListeners evts: `, evts)
+
+        if (Object.keys(evts).length > 0) {
+            for (let evt of Object.keys(evts)) {
+                for (k = 0; k < evts[evt].length; k++) {
+                    elements.push({
+                        "node": currentElement,
+                        "type": evt,
+                        "func": evts[evt][k].listener.toString()
+                    });
+                }
+            }
+        }
+    }
+    // }
+
+    return elements.sort();
+}
+
+window.listElementEventListeners = listElementEventListeners;
 
 class AppView {
     constructor() {
@@ -36,8 +115,6 @@ class AppView {
     }
 
     async init(event, arg) {
-
-
         this.settings = arg.settings;
         this.displays = arg.displays;
 
@@ -46,6 +123,13 @@ class AppView {
         window.print = () => {
             ipcRenderer.send('print', document.body.innerHTML);
         };
+
+        // console.log(`typeof print_check:`, typeof print_check)
+        if (typeof print_check === 'function') {
+            window.print_check = (html) => {
+                ipcRenderer.send('print', html);
+            }
+        }
 
         const isDebug = this.settings.debug;
 
