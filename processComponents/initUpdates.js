@@ -39,7 +39,7 @@ module.exports = function () {
     this.updateWin = this._createWindow({
         width: 500,
         height: 100,
-        kiosk: false,
+        kiosk: true,
         title: this.settings.title + ` - UPDATE`,
         frame: false,
         preload: 'update.preload.js'
