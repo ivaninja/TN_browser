@@ -6,13 +6,60 @@
     <link rel="stylesheet" href="assets/bootstrap.min.css"/>
     <style>
         body, html {
-            height: 100%
+            height: 100%;
+            background-color: #aedbf2;
         }
         .wrapper {
             height: 100%
         }
         .update-container {
-            width: 100%
+            width: 70%;
+            height: 15%;
+            background-color: #f7fbfe;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container-wait {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container-wait img {
+            height: 35px;
+        }
+
+        .wait_txt {
+            margin-left: 15px;
+            font-style: italic;
+            color: #595c61;
+            opacity: 70%;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bolder;
+            color: #565f62;
+            margin-left: 10px;
+
+        }
+        .version-text {
+            font-size: 12px;
+            font-weight: bolder;
+            color: #565f62;
+            margin-left: 5px;
+        }
+
+        .text-display{
+            display: flex;
+            align-items: baseline;
+        }
+
+        .browser-version {
+            display: flex;
+            justify-content: flex-start;
         }
 
         .check>span, .check>.spinner-grow {
@@ -24,6 +71,14 @@
             display: none;
         }
 
+        .times {
+            margin-top: 15px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
 
     </style>
 </head>
@@ -32,7 +87,19 @@
     <div class="update-container p-3">
 
         <div id="check" class="check">
-            <div class="spinner-grow text-warning"></div> <span>Checking updates, please wait...</span>
+            <div class="container-wait">
+                <img src="./assets/favicon.ico"/>
+                <div class="text-display">
+                    <div class="browser-version">
+                        <span class="logo-text">BROWSER </span>
+                        <span class="version-text">v1.0.8 </span>
+                    </div>
+                    <span class="wait_txt">TN Browser checking for updates... Please wait</span>
+                </div>
+                </div>
+
+            <div class="times">&times;</div>
+
         </div>
 
         <div id="progress" class="progress-container">
