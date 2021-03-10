@@ -140,7 +140,24 @@ class MainProcess {
         const sign = randomId();
         const win = this.createWindow({...windowItem, sign, index});
         this.windows.push(win);
-
+        const isSafeishURL = (url) =>  {
+            return url.startsWith('http:') || url.startsWith('https:');
+        }
+        win.webContents.on('will-navigate', (event, url) => {
+            event.preventDefault();
+            if (isSafeishURL(url)) {
+                const win = new BrowserWindow({
+                    width: this.settings.width,
+                    height: this.settings.height,
+                    kiosk: false,
+                    title: this.settings.title,
+                    maximizable: true,
+                    preload: 'preload.js'
+                })
+                win.loadURL(url)
+                win.maximize()
+            }
+        })
         win.on('close', (event) => {
             const foundIndex = this.windows.findIndex((item) => {
                 return item.webContents.browserWindowOptions.preference.sign === sign;
