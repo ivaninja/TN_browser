@@ -1,6 +1,6 @@
 {
   "name": "tn-browser",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Private Browser",
   "main": "index.js",
   "scripts": {
