@@ -82,7 +82,7 @@
     <div class="text-display">
         <div class="browser-version">
             <span class="logo-text">BROWSER </span>
-            <span class="version-text">v1.0.8 </span>
+            <span class="version-text" data-selector="version" >...</span>
         </div>
     </div>
 </div>
@@ -95,9 +95,9 @@
 <span class="powered">POWERED BY TELENORMA</span>
 </body>
 <script>
-    // window.addEventListener('settings', (e) => {
-    //     document.querySelector('[data-selector="version"]').innerHTML = `v` + e.detail.version;
-    // })
+    window.addEventListener('settings', (e) => {
+        document.querySelector('[data-selector="version"]').innerHTML = `v` + e.detail.version;
+    })
     /*    document.getElementById("btn").addEventListener('click', () => {
             window.print()
         });*/

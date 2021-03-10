@@ -138,26 +138,9 @@ class MainProcess {
 
     openWorkWindow({windowItem, index, skipSplash}) {
         const sign = randomId();
-        const win = this.createWindow({...windowItem, sign, index});
+        const isPrimary = index === 0
+        const win = this.createWindow({...windowItem, sign, index}, isPrimary);
         this.windows.push(win);
-        const isSafeishURL = (url) =>  {
-            return url.startsWith('http:') || url.startsWith('https:');
-        }
-        win.webContents.on('will-navigate', (event, url) => {
-            event.preventDefault();
-            if (isSafeishURL(url)) {
-                const win = new BrowserWindow({
-                    width: this.settings.width,
-                    height: this.settings.height,
-                    kiosk: false,
-                    title: this.settings.title,
-                    maximizable: true,
-                    preload: 'preload.js'
-                })
-                win.loadURL(url)
-                win.maximize()
-            }
-        })
         win.on('close', (event) => {
             const foundIndex = this.windows.findIndex((item) => {
                 return item.webContents.browserWindowOptions.preference.sign === sign;
@@ -220,7 +203,7 @@ class MainProcess {
         });
     }
 
-    createWindow(windowItem) {
+    createWindow(windowItem, isPrimary) {
         const displays = this.screen.getAllDisplays();
         let externalDisplay = displays.find((display) => {
             return display.id === windowItem.displayId;
@@ -239,7 +222,7 @@ class MainProcess {
         const win = this._createWindow({
             width: this.settings.width,
             height: this.settings.height,
-            kiosk: this.settings.kiosk,
+            kiosk: isPrimary ? this.settings.kiosk : true,
             title: this.settings.title,
             frame: this.settings.frame,
             preference: windowItem,
