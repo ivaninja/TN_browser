@@ -1,6 +1,12 @@
 
 
 module.exports = function () {
+    this.printWin.setAutoResize({
+        width: true,
+        height: true,
+        horizontal: true,
+        vertical: true
+    })
     this.printWin.webContents.print({
         silent: true, margins: {
             marginType: "custom",
