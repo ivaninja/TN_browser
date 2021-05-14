@@ -1,6 +1,4 @@
-
-
-module.exports = function ({workDirectory, version, isDev}) {
+module.exports = function ({ workDirectory, version, isDev }) {
     return {
         width: 800,
         height: 600,
@@ -11,8 +9,10 @@ module.exports = function ({workDirectory, version, isDev}) {
         buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
         buttonMargin: '10px 10px 10px 10px',
         showMinimizeButton: false,
-        minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
-        maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
+        minimizeIconUrl:
+            'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
+        maximizeIconUrl:
+            'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
         debug: isDev,
         splashScreenTimeout: 3000,
         checkOnlineTimeout: 10000,
@@ -22,12 +22,14 @@ module.exports = function ({workDirectory, version, isDev}) {
         isDev,
         urls: [
             {
-                url: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
+                url:
+                    'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
                 displayId: 0,
                 offlineUrl: 'http://error.kassesvn.tn-rechenzentrum1.de/',
                 zoom: 1,
-            }
+            },
         ],
         version,
-    }
-}
+        printFont: 'Arial',
+    };
+};
