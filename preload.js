@@ -1,6 +1,6 @@
-const {ipcRenderer, remote} = require('electron');
+const {ipcRenderer, remote, webFrame} = require('electron');
 const path = require('path');
-
+const url = require('url');
 
 class AppView {
     constructor() {
@@ -10,6 +10,7 @@ class AppView {
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
         this.displays = [];
+        this.preference = this.win.webContents.browserWindowOptions.preference;
 
         this.css = `
 .control-container {
@@ -24,15 +25,16 @@ class AppView {
   background-position: center;
   background-size: contain;
   cursor: pointer;
+  z-index: 99999999999;
 }
 .control-container.minimized {
   background-image: url('%_MAXIMIZE_ICON_URL_%');
 }`;
 
+
     }
 
     async init(event, arg) {
-
         this.settings = arg.settings;
         this.displays = arg.displays;
 
@@ -41,6 +43,13 @@ class AppView {
         window.print = () => {
             ipcRenderer.send('print', document.body.innerHTML);
         };
+
+        // console.log(`typeof print_check:`, typeof print_check)
+        if (typeof print_check === 'function') {
+            window.print_check = (html) => {
+                ipcRenderer.send('print', html);
+            }
+        }
 
         const isDebug = this.settings.debug;
 
@@ -60,6 +69,11 @@ class AppView {
         window.dispatchEvent(settingsEvent);
 
         this.addPageListeners();
+
+        if (this.preference !== null) {
+            webFrame.setZoomFactor(this.preference.zoom);
+        }
+
     }
 
     defineSettings(event, arg) {
@@ -142,7 +156,6 @@ class AppView {
             }
         }
 
-
         window.addEventListener('keydown', (e) => {
 
             if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
@@ -160,4 +173,3 @@ class AppView {
 window.addEventListener('load', () => {
     window._APP_ = new AppView();
 });
-

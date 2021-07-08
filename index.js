@@ -1,72 +1,79 @@
 const {app, BrowserWindow, ipcMain, dialog, session, screen} = require('electron');
-const {autoUpdater} = require("electron-updater");
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
+
 const {version} = require('./package.json');
+const setDebug = require('./helpers/setDebug');
+const checkConnection = require('./helpers/checkConnection');
+const randomId = require('./helpers/randomId');
 
+const requestMainProcessAction = require('./processComponents/requestMainProcessAction');
+const secondInstance = require('./processComponents/secondInstance');
+const onPrint = require('./processComponents/onPrint');
+const initUpdates = require('./processComponents/initUpdates');
+const workDirectory = require('./processComponents/workDirectory');
+const readyToPrint = require('./processComponents/readyToPrint');
+const defaultSettings = require('./processComponents/defaultSettings');
+const checkOnline = require('./processComponents/checkOnline');
 
-const workDirectory = isDev ?
-    path.resolve(`${path.dirname(process.execPath)}/../../../`) : // ../../../node_modules/electron/dist
-    path.resolve(`${path.dirname(process.execPath)}`);
+const openSettings = require('./actions/openSettings');
+const getSettings = require('./actions/getSettings');
+const cancelSettings = require('./actions/cancelSettings');
 
+const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
 
-const DEFAULT_SETTINGS = {
-    width: 800,
-    height: 600,
-    kiosk: true,
-    title: 'TN-Browser',
-    frame: true,
-    buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
-    buttonMargin: '10px 10px 10px 10px',
-    showMinimizeButton: false,
-    minimizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
-    maximizeIconUrl: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_open.png',
-    debug: isDev,
-    splashScreenTimeout: 3000,
-    workDirectory,
-    showMenu: false,
-    isDev,
-    urls: [
-        {
-            url: 'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/',
-            displayId: 0,
-        }
-    ],
-    version,
-};
-
-function setDebug(debug) {
-    global._logger = new Proxy(console, {
-        get: function (target, name) {
-            return debug === true ? target[name]
-                : () => {
-                };
-        }
-    });
-}
 
 class MainProcess {
     constructor() {
         this.app = app;
         this.ipcMain = ipcMain;
-        this.autoUpdater = autoUpdater;
+        this.screen = screen;
+        this.autoUpdater = null;
         this.dialog = dialog;
+        this.dirPath = __dirname;
+        this.isDev = isDev;
+        this.workDirectory = workDirectory(this.isDev);
 
-        this.updateWin = null;
+        this.updateWin = null; // used ./processComponents/initUpdates.js
         this.printWin = null;
         this.win = null;
-        this.winows = [];
-
+        this.windows = [];
+        this.closedWindowIndexes = [];
+        this.isRedirectedToError = false;
+        this.isOnline = null;
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
-        this.settings = DEFAULT_SETTINGS;
-        setDebug(this.settings.debug);
+        this.settings = defaultSettings({version, workDirectory: this.workDirectory, isDev});
+
+        /* - Bind Methods -*/
+        this.initUpdates = initUpdates.bind(this);
+        this.setDebug = setDebug.bind(this);
+        this.checkOnline = checkOnline.bind(this);
+
+        /* - Bind Actions -*/
+        this.openSettings = openSettings.bind(this);
+        this.getSettings = getSettings.bind(this);
+        this.cancelSettings = cancelSettings.bind(this);
+
+
+        this.setDebug(this.settings.debug);
 
         this.init();
     }
 
     async init() {
+        const isMain = this.app.requestSingleInstanceLock();
+
+        if (!isMain) {
+            console.error(`another instance already running`);
+            this.app.quit();
+            return;
+        }
+
+        this.isOnline = await checkConnection();
+        _logger.log(`isOnline: `, this.isOnline);
+
         await this.initSettings();
         this.initEvents();
         await this.app.whenReady();
@@ -74,9 +81,9 @@ class MainProcess {
     }
 
     async initSettings() {
-        _logger.log(`path: `, workDirectory);
+        _logger.log(`path: `, this.workDirectory);
 
-        const settingsFilePath = path.resolve(`${workDirectory}/settings.json`);
+        const settingsFilePath = path.resolve(`${this.workDirectory}/settings.json`);
 
         if (fs.existsSync(settingsFilePath)) {
             const settingsFile = fs.readFileSync(settingsFilePath, 'utf8');
@@ -87,138 +94,95 @@ class MainProcess {
                 this.settings = {
                     ...this.settings,
                     ...settings,
+                    isOnline: this.isOnline,
                 };
+
+                this.settingsMigration();
 
             } catch (e) {
                 console.error(`Something went wrong! settings.json is not JSON`);
             }
-
         }
 
-        setDebug(this.settings.debug)
+        setDebug(this.settings.debug);
 
         return;
     }
 
-    initUpdates() {
+    settingsMigration() {
+        this.settings.urls = this.settings.urls.map((item) => {
+            if (!item.hasOwnProperty('offlineUrl')) {
+                item.offlineUrl = defaultOfflineUrl;
+            }
 
-        if (isDev) {
-            this.start();
-            return
-        }
-
-        this.autoUpdater.on('checking-for-update', () => {
-            console.log(`checking-for-update`)
-
-            this.updateWin.webContents.send('message', {action: 'checkingForUpdate', data: ''});
+            if (!item.hasOwnProperty('zoom')) {
+                item.zoom = 1;
+            }
+            return item;
         });
-
-
-        this.autoUpdater.on('update-available', (info) => {
-            // console.log(info)
-            this.updateWin.webContents.send('message', {action: 'updateAvailable', data: ''});
-        });
-
-        this.autoUpdater.on('update-not-available', (info) => {
-            this.start();
-            this.updateWin.close();
-        });
-
-        this.autoUpdater.on('error', (err) => {
-            console.log('Error in auto-updater:', err);
-        });
-
-        this.autoUpdater.on('download-progress', (progressObj) => {
-            this.updateWin.webContents.send('message', {action: 'download', data: progressObj.percent});
-        });
-
-        this.autoUpdater.on('update-downloaded', (info) => {
-            setTimeout(() => {
-                this.autoUpdater.quitAndInstall();
-            }, 5000)
-
-        });
-
-        this.updateWin = this._createWindow({
-            width: 500,
-            height: 100,
-            kiosk: false,
-            title: this.settings.title + ` - UPDATE`,
-            frame: false,
-            preload: 'update.preload.js'
-        });
-
-        this.updateWin.loadFile('./update.html');
-
-        if (this.settings.debug) {
-            this.updateWin.webContents.openDevTools();
-        }
-
-
-        this.autoUpdater.checkForUpdatesAndNotify();
     }
 
     initEvents() {
-
-        this.ipcMain.on('request-mainprocess-action', (event, arg) => {
-            _logger.log('action:', arg.action)
-            this[arg.action](event, arg);
-        });
-
-        this.ipcMain.on('print', (event, content) => {
-
-            this.printWin = new BrowserWindow({
-                show: false,
-                webPreferences: {
-                    nativeWindowOpen: true,
-                    webSecurity: false,
-                    allowRunningInsecureContent: true,
-                    enableRemoteModule: true,
-                    nodeIntegration: true,
-                    preload: path.join(__dirname, 'preload2.js'),
-                },
-            });
-
-            this.printWin.loadURL('file://' + __dirname + '/receipt.html');
-
-            this.printWin.webContents.on('did-finish-load', () => {
-                this.printWin.webContents.send('setContent', content);
-            });
-        });
-
-        this.ipcMain.on('readyToPrint', (event) => {
-            this.printWin.webContents.print({silent: true});
-        });
-
+        this.app.on('second-instance', secondInstance.bind(this));
+        this.ipcMain.on('request-mainprocess-action', requestMainProcessAction.bind(this));
+        this.ipcMain.on('print', onPrint.bind(this));
+        this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
     }
 
-    start() {
+    reopenWindows() {
+        this.closedWindowIndexes.forEach((itemIndex) => {
+            this.openWorkWindow({windowItem: this.settings.urls[itemIndex], index: itemIndex, skipSplash: true});
+        });
+        this.closedWindowIndexes = [];
+    }
 
-        this.settings.urls.forEach((windowItem) => {
+    openWorkWindow({windowItem, index, skipSplash}) {
+        const sign = randomId();
+        const isPrimary = index === 0
+        const win = this.createWindow({...windowItem, sign, index}, isPrimary);
+        this.windows.push(win);
+        win.on('close', (event) => {
+            const foundIndex = this.windows.findIndex((item) => {
+                return item.webContents.browserWindowOptions.preference.sign === sign;
+            });
 
-            const win = this.createWindow(windowItem)
-            this.winows.push(win);
-
-
-            win.loadFile('./splash.html');
-
-            if (this.settings.debug) {
-                win.webContents.openDevTools();
+            if (foundIndex !== -1) {
+                this.windows.splice(foundIndex, 1);
+                this.closedWindowIndexes.push(index);
+            } else {
+                console.error(`close foundIndex not found`, foundIndex, windowItem)
             }
-
-            this.removeMenu(win);
-
-            setTimeout(() => {
-                    win.loadURL(windowItem.url);
-                },
-                this.settings.splashScreenTimeout)
-            ;
-
         });
+
+        win.loadFile('./splash.html');
+
+        win.webContents.once('did-finish-load', ()=>{
+            setTimeout(() => {
+                win.loadURL(windowItem.url);
+            }, skipSplash ? 10 : this.settings.splashScreenTimeout);
+        })
+
+        if (this.settings.debug) {
+            win.webContents.openDevTools();
+        }
+
+        this.removeMenu(win);
+
+        if (!this.isOnline) {
+            windowItem.url = windowItem.offlineUrl;
+            this.isRedirectedToError = true;
+        }
 
     }
 
-    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0}) {
+    start({skipSplash = false}) {
+        this.settings.urls.forEach((windowItem, index) => {
+            this.openWorkWindow({windowItem, index, skipSplash});
+        });
+        this.checkOnline();
+    }
+
+    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0, preference = null}) {
         return new BrowserWindow({
             width,
             height,
@@ -226,6 +190,7 @@ class MainProcess {
             title,
             frame,
             icon: './assets/favicon.ico',
+            preference,
             webPreferences: {
                 nativeWindowOpen: true,
                 webSecurity: false,
@@ -238,8 +203,8 @@ class MainProcess {
         });
     }
 
-    createWindow(windowItem) {
-        const displays = screen.getAllDisplays();
+    createWindow(windowItem, isPrimary) {
+        const displays = this.screen.getAllDisplays();
         let externalDisplay = displays.find((display) => {
             return display.id === windowItem.displayId;
         });
@@ -253,75 +218,65 @@ class MainProcess {
             position.x = externalDisplay.bounds.x + 50;
             position.y = externalDisplay.bounds.y + 50;
         }
-        console.log(`externalDisplay`, externalDisplay);
 
-        return this._createWindow({
+        const win = this._createWindow({
             width: this.settings.width,
             height: this.settings.height,
-            kiosk: this.settings.kiosk,
+            kiosk: isPrimary ? this.settings.kiosk : true,
             title: this.settings.title,
             frame: this.settings.frame,
+            preference: windowItem,
             ...position,
             preload: 'preload.js'
         });
 
-        // console.log(`screen`, screen.getAllDisplays())
-    }
 
-    getSettings(event, arg) {
-        event.sender.send('mainprocess-response', {
-            action: 'init',
-            settings: this.settings,
-            displays: screen.getAllDisplays(),
-        });
-    }
+        return win;
 
-    openSettings() {
-        this.winows[0].loadFile('./settings.html');
-    }
-
-    cancelSettings() {
-        this.winows[0].loadURL(this.settings.urls[0].url);
     }
 
     removeMenu(win) {
         if (!this.settings.showMenu) {
-
             if (typeof win.removeMenu === 'function') {
                 win.removeMenu();
             } else {
                 win.setMenu(null);
             }
-
         }
     }
 
     saveSettings(event, arg) {
         // event, arg
-        fs.writeFileSync(`${workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
+        fs.writeFileSync(`${this.workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
         this.settings = {
             ...this.settings,
             ...arg.data
         };
 
-        const oldWin = this.winows[0];
+        const oldWindows = [].concat(this.windows);
+        this.windows = [];
 
-        this.winows[0] = this.createWindow(this.settings.urls[0]);
+        oldWindows.forEach((item) => {
+            item.hide();
+        })
 
-        this.openSettings();
+        this.start({skipSplash: true});
 
-        if (this.settings.debug) {
-            this.winows[0].webContents.openDevTools();
-        }
+        oldWindows.forEach((item) => {
+            item.close();
+        });
 
-        this.removeMenu(this.winows[0]);
+        setTimeout(() => this.openSettings(), 10);
 
-        oldWin.close();
+        // console.log(oldWindows)
+
     }
 
     async flushStore() {
-        await this.winows[0].webContents.session.clearStorageData();
-        this.winows[0].reload();
+        for (let i in this.windows) {
+            await this.windows[i].webContents.session.clearStorageData();
+            this.windows[i].reload();
+        }
     }
 
 }
