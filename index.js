@@ -124,6 +124,9 @@ class MainProcess {
 
     initEvents() {
         this.app.on('second-instance', secondInstance.bind(this));
+        this.app.on('window-all-closed', () => {
+            this.app.quit();
+        });
         this.ipcMain.on('request-mainprocess-action', requestMainProcessAction.bind(this));
         this.ipcMain.on('print', onPrint.bind(this));
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
@@ -149,6 +152,7 @@ class MainProcess {
             if (foundIndex !== -1) {
                 this.windows.splice(foundIndex, 1);
                 this.closedWindowIndexes.push(index);
+                win == null;
             } else {
                 console.error(`close foundIndex not found`, foundIndex, windowItem)
             }
@@ -276,6 +280,13 @@ class MainProcess {
         for (let i in this.windows) {
             await this.windows[i].webContents.session.clearStorageData();
             this.windows[i].reload();
+        }
+    }
+
+    async clearCache() {
+        for (let i in this.windows) {
+            console.log(i);
+            await this.windows[i].webContents.session.clearCache();            
         }
     }
 

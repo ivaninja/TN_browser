@@ -2,6 +2,7 @@ const { BrowserWindow, BrowserView } = require('electron');
 const path = require('path');
 
 module.exports = function (event, content) {
+    this.printWin = null;
     this.printWin = new BrowserWindow({
         show: this.settings.devShowPrintWindow,
         width: 700,
