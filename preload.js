@@ -63,7 +63,7 @@ class AppView {
             }
         });
 
-        _logger.log(`settings`, this.settings);
+        _logger.log(`settings preload`, this.settings);
 
         const settingsEvent = new CustomEvent('settings', {detail: this.settings});
         window.dispatchEvent(settingsEvent);
@@ -158,12 +158,20 @@ class AppView {
 
         window.addEventListener('keydown', (e) => {
 
-            if (e.keyCode === 83 && e.altKey && e.ctrlKey) {
+            if (e.keyCode === 83 && e.altKey && e.ctrlKey) { //CTRL+ALT+S
                 ipcRenderer.send('request-mainprocess-action', {action: 'openSettings'});
             }
 
             if (e.keyCode === 46 && e.shiftKey && e.ctrlKey) { //CTRL+SHIFT+DELETE
                 ipcRenderer.send('request-mainprocess-action', {action: 'flushStore'});
+            }
+
+            if (e.keyCode === 81 && e.shiftKey && e.ctrlKey) { //CTRL+SHIFT+Q
+                ipcRenderer.send('request-mainprocess-action', {action: 'openDevTools'});
+            }
+
+            if (e.keyCode === 90 && e.altKey && e.ctrlKey) { //CTRL+AlT+Z
+                ipcRenderer.send('request-mainprocess-action', {action: 'clearCache'});
             }
 
         }, true);

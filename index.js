@@ -82,7 +82,6 @@ class MainProcess {
 
     async initSettings() {
         _logger.log(`path: `, this.workDirectory);
-
         const settingsFilePath = path.resolve(`${this.workDirectory}/settings.json`);
 
         if (fs.existsSync(settingsFilePath)) {
@@ -156,6 +155,9 @@ class MainProcess {
             } else {
                 console.error(`close foundIndex not found`, foundIndex, windowItem)
             }
+        });
+        win.on('closed', (event) => {
+            win == null;
         });
 
         win.loadFile('./splash.html');
@@ -256,14 +258,13 @@ class MainProcess {
             ...this.settings,
             ...arg.data
         };
-
         const oldWindows = [].concat(this.windows);
-        this.windows = [];
-
-        oldWindows.forEach((item) => {
+        // this.windows = [];
+        this.clearCache();
+        oldWindows.forEach((item, index) => {
             item.hide();
         })
-
+        
         this.start({skipSplash: true});
 
         oldWindows.forEach((item) => {
@@ -285,8 +286,14 @@ class MainProcess {
 
     async clearCache() {
         for (let i in this.windows) {
-            console.log(i);
-            await this.windows[i].webContents.session.clearCache();            
+            await this.windows[i].webContents.session.clearCache();
+            this.windows[i].reload();
+        }
+    }
+
+    async openDevTools() {
+        for (let i in this.windows) {
+            await this.windows[i].webContents.openDevTools();
         }
     }
 

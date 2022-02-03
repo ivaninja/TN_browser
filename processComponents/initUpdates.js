@@ -42,10 +42,16 @@ module.exports = function () {
         kiosk: true,
         title: this.settings.title + ` - UPDATE`,
         frame: false,
-        preload: 'update.preload.js'
+        // webPreferences: {            
+        //     nodeIntegration: true,
+        //     preload: 'update.preload.js',
+        // },
+        preload: 'update.preload.js',
+        
     });
 
-    this.updateWin.loadFile('./update.html');
+    // this.updateWin.loadFile(`./update.html?version=${this.settings.version}`);
+    this.updateWin.loadFile(`./update.html`);
 
     if (this.settings.debug) {
         this.updateWin.webContents.openDevTools();
