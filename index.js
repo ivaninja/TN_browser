@@ -43,6 +43,7 @@ class MainProcess {
         this.isRedirectedToError = false;
         this.isOnline = null;
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+        this.app.disableHardwareAcceleration();
 
         this.settings = defaultSettings({version, workDirectory: this.workDirectory, isDev});
 
