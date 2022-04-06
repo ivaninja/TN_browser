@@ -1,9 +1,17 @@
-const {app, BrowserWindow, ipcMain, dialog, session, screen} = require('electron');
+const {
+    app,
+    BrowserWindow,
+    ipcMain,
+    dialog,
+    session,
+    screen,
+    contentTracing,
+} = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
 
-const {version} = require('./package.json');
+const { version } = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
 const randomId = require('./helpers/randomId');
@@ -22,7 +30,6 @@ const getSettings = require('./actions/getSettings');
 const cancelSettings = require('./actions/cancelSettings');
 
 const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
-
 
 class MainProcess {
     constructor() {
@@ -43,9 +50,14 @@ class MainProcess {
         this.isRedirectedToError = false;
         this.isOnline = null;
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+        this.app.commandLine.appendSwitch('disable-gpu', 'true');
         this.app.disableHardwareAcceleration();
 
-        this.settings = defaultSettings({version, workDirectory: this.workDirectory, isDev});
+        this.settings = defaultSettings({
+            version,
+            workDirectory: this.workDirectory,
+            isDev,
+        });
 
         /* - Bind Methods -*/
         this.initUpdates = initUpdates.bind(this);
@@ -56,7 +68,6 @@ class MainProcess {
         this.openSettings = openSettings.bind(this);
         this.getSettings = getSettings.bind(this);
         this.cancelSettings = cancelSettings.bind(this);
-
 
         this.setDebug(this.settings.debug);
 
@@ -77,18 +88,29 @@ class MainProcess {
 
         await this.initSettings();
         this.initEvents();
-        await this.app.whenReady();
+        // await this.app.whenReady().then(() => {
+        //     (async () => {
+        //       await contentTracing.startRecording({
+        //         included_categories: ['*']
+        //       })
+        //       console.log('Tracing started')
+        //       await new Promise(resolve => setTimeout(resolve, 5000))
+        //       const path = await contentTracing.stopRecording()
+        //       console.log('Tracing data recorded to ' + path)
+        //     })()
+        //   });
         await this.initUpdates();
     }
 
     async initSettings() {
         _logger.log(`path: `, this.workDirectory);
-        const settingsFilePath = path.resolve(`${this.workDirectory}/settings.json`);
+        const settingsFilePath = path.resolve(
+            `${this.workDirectory}/settings.json`
+        );
 
         if (fs.existsSync(settingsFilePath)) {
             const settingsFile = fs.readFileSync(settingsFilePath, 'utf8');
             try {
-
                 const settings = JSON.parse(settingsFile);
 
                 this.settings = {
@@ -98,9 +120,10 @@ class MainProcess {
                 };
 
                 this.settingsMigration();
-
             } catch (e) {
-                console.error(`Something went wrong! settings.json is not JSON`);
+                console.error(
+                    `Something went wrong! settings.json is not JSON`
+                );
             }
         }
 
@@ -127,47 +150,68 @@ class MainProcess {
         this.app.on('window-all-closed', () => {
             this.app.quit();
         });
-        this.ipcMain.on('request-mainprocess-action', requestMainProcessAction.bind(this));
+
+        this.ipcMain.on(
+            'request-mainprocess-action',
+            requestMainProcessAction.bind(this)
+        );
         this.ipcMain.on('print', onPrint.bind(this));
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
+        this.ipcMain.on('show-context-menu', (event) => {
+            return false;
+        });
     }
 
     reopenWindows() {
         this.closedWindowIndexes.forEach((itemIndex) => {
-            this.openWorkWindow({windowItem: this.settings.urls[itemIndex], index: itemIndex, skipSplash: true});
+            this.openWorkWindow({
+                windowItem: this.settings.urls[itemIndex],
+                index: itemIndex,
+                skipSplash: true,
+            });
         });
         this.closedWindowIndexes = [];
     }
 
-    openWorkWindow({windowItem, index, skipSplash}) {
+    openWorkWindow({ windowItem, index, skipSplash }) {
         const sign = randomId();
-        const isPrimary = index === 0
-        const win = this.createWindow({...windowItem, sign, index}, isPrimary);
+        const isPrimary = index === 0;
+        var win = this.createWindow({ ...windowItem, sign, index }, isPrimary);
         this.windows.push(win);
         win.on('close', (event) => {
             const foundIndex = this.windows.findIndex((item) => {
-                return item.webContents.browserWindowOptions.preference.sign === sign;
+                return (
+                    item.webContents.browserWindowOptions.preference.sign ===
+                    sign
+                );
             });
 
             if (foundIndex !== -1) {
                 this.windows.splice(foundIndex, 1);
                 this.closedWindowIndexes.push(index);
-                win == null;
+                win = null;
             } else {
-                console.error(`close foundIndex not found`, foundIndex, windowItem)
+                console.error(
+                    `close foundIndex not found`,
+                    foundIndex,
+                    windowItem
+                );
             }
         });
         win.on('closed', (event) => {
-            win == null;
+            win = null;
         });
 
         win.loadFile('./splash.html');
 
-        win.webContents.once('did-finish-load', ()=>{
-            setTimeout(() => {
-                win.loadURL(windowItem.url);
-            }, skipSplash ? 10 : this.settings.splashScreenTimeout);
-        })
+        win.webContents.once('did-finish-load', () => {
+            setTimeout(
+                () => {
+                    win.loadURL(windowItem.url);
+                },
+                skipSplash ? 10 : this.settings.splashScreenTimeout
+            );
+        });
 
         if (this.settings.debug) {
             win.webContents.openDevTools();
@@ -179,17 +223,27 @@ class MainProcess {
             windowItem.url = windowItem.offlineUrl;
             this.isRedirectedToError = true;
         }
-
     }
 
-    start({skipSplash = false}) {
+    start({ skipSplash = false }) {
         this.settings.urls.forEach((windowItem, index) => {
-            this.openWorkWindow({windowItem, index, skipSplash});
+            this.openWorkWindow({ windowItem, index, skipSplash });
         });
         this.checkOnline();
+        setTimeout(() => this.clearCache(), 10);
     }
 
-    _createWindow({width, height, kiosk, title, frame, preload, x = 0, y = 0, preference = null}) {
+    _createWindow({
+        width,
+        height,
+        kiosk,
+        title,
+        frame,
+        preload,
+        x = 0,
+        y = 0,
+        preference = null,
+    }) {
         return new BrowserWindow({
             width,
             height,
@@ -206,7 +260,7 @@ class MainProcess {
                 preload: path.join(__dirname, preload), // use a preload script
             },
             x,
-            y
+            y,
         });
     }
 
@@ -218,8 +272,8 @@ class MainProcess {
 
         let position = {
             x: 0,
-            y: 0
-        }
+            y: 0,
+        };
 
         if (externalDisplay) {
             position.x = externalDisplay.bounds.x + 50;
@@ -237,9 +291,7 @@ class MainProcess {
             preload: 'preload.js'
         });
 
-
         return win;
-
     }
 
     removeMenu(win) {
@@ -254,19 +306,22 @@ class MainProcess {
 
     saveSettings(event, arg) {
         // event, arg
-        fs.writeFileSync(`${this.workDirectory}/settings.json`, JSON.stringify(arg.data, null, '\t'));
+        fs.writeFileSync(
+            `${this.workDirectory}/settings.json`,
+            JSON.stringify(arg.data, null, '\t')
+        );
         this.settings = {
             ...this.settings,
-            ...arg.data
+            ...arg.data,
         };
         const oldWindows = [].concat(this.windows);
         // this.windows = [];
         this.clearCache();
         oldWindows.forEach((item, index) => {
             item.hide();
-        })
-        
-        this.start({skipSplash: true});
+        });
+
+        this.start({ skipSplash: true });
 
         oldWindows.forEach((item) => {
             item.close();
@@ -275,7 +330,6 @@ class MainProcess {
         setTimeout(() => this.openSettings(), 10);
 
         // console.log(oldWindows)
-
     }
 
     async flushStore() {
@@ -285,11 +339,30 @@ class MainProcess {
         }
     }
 
-    async clearCache() {
+    async clearCache(reload = true) {
+        console.log('clean cache');
         for (let i in this.windows) {
             await this.windows[i].webContents.session.clearCache();
-            this.windows[i].reload();
+            if (reload) this.windows[i].reload();
         }
+    }
+
+    goToOffline() {
+        let options = {
+            buttons: ['Yes', 'No', 'Cancel'],
+            message: 'Do you really want to go to offline?',
+        };
+        dialog.showMessageBox(options).then((response) => {
+            if (response.response == 0) {
+                for (let i in this.windows) {
+                    this.windows[i].loadURL(
+                        this.windows[i].webContents.browserWindowOptions
+                            .preference.offlineUrl
+                    );
+                }
+            }
+        });
+        // console.log(response);
     }
 
     async openDevTools() {
@@ -297,7 +370,6 @@ class MainProcess {
             await this.windows[i].webContents.openDevTools();
         }
     }
-
 }
 
 new MainProcess();
