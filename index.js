@@ -349,8 +349,8 @@ class MainProcess {
 
     goToOffline() {
         let options = {
-            buttons: ['Yes', 'No', 'Cancel'],
-            message: 'Do you really want to go to offline?',
+            buttons: ['Ja', 'Nein'],
+            message: 'Möchten Sie in die Offline-Version wechseln?',
         };
         dialog.showMessageBox(options).then((response) => {
             if (response.response == 0) {
