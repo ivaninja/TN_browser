@@ -17,7 +17,7 @@ class AppView {
   margin: 0 auto;
   position: absolute;
   top:1%;
-  left:50%;
+  left:60%;
   width: 36px;
   height: 36px;
   border: 1px solid #ceced0;
@@ -36,7 +36,7 @@ class AppView {
     margin: 0 auto;
     position: absolute;
     top:1%;
-    left:45%;
+    left:55%;
   width: 36px;
   height: 36px;
   border: 1px solid #ceced0;
