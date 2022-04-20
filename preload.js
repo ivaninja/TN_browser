@@ -1,3 +1,4 @@
+const { log } = require('console');
 const { ipcRenderer, remote, webFrame } = require('electron');
 const path = require('path');
 const url = require('url');
@@ -14,10 +15,9 @@ class AppView {
 
         this.css = `
 .control-container {  
-  margin: 0 auto;
-  position: absolute;
-  top:1%;
-  left:70%;
+  margin: %_MARGIN_%;
+  position: fixed;
+  %_POSITION_%
   width: 36px;
   height: 36px;
   border: 1px solid #ceced0;
@@ -33,10 +33,9 @@ class AppView {
 }
 
 .offline_icon {
-    margin: 0 auto;
-    position: absolute;
-    top:1%;
-    left:65%;
+    margin: %_MARGINOFFLINE_%;
+  position: fixed;
+  %_POSITIONOFFLINE_%
   width: 36px;
   height: 36px;
   border: 1px solid #ceced0;
@@ -53,7 +52,7 @@ class AppView {
     async init(event, arg) {
         this.settings = arg.settings;
         this.displays = arg.displays;
-        console.log(arg);
+        // console.log(arg);
         this.win.setTitle(this.settings.title);
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -141,12 +140,55 @@ class AppView {
         const css = document.createElement('link');
         css.setAttribute('rel', 'stylesheet');
         css.setAttribute('data-selector', `css-style`);
+        const positions = {
+            TOP_LEFT: ['top: 0;', 'left: 0;'].join('\n'),
+            TOP_RIGHT: ['top: 0;', 'right: 0;'].join('\n'),
+            BOTTOM_LEFT: ['bottom: 0;', 'left: 0;'].join('\n'),
+            BOTTOM_RIGHT: ['bottom: 0;', 'right: 0;'].join('\n')
+        };
+        console.log(this.settings.buttonMargin);
+        this.css = this.css.replace(
+            '%_MARGIN_%',
+            this.settings.buttonMargin || '10px'
+        );
+        
+        const test = this.settings.buttonMargin.replace(/px/g, '').split(' ');
+        let top = Number(test[0]);
+        let right = (positions[this.settings.buttonPosition]==
+        positions.TOP_RIGHT || positions[this.settings.buttonPosition]==
+        positions.BOTTOM_RIGHT) ? Number(test[1])+50 : Number(test[1]);
+        let bottom = Number(test[2]);
+        let left = (positions[this.settings.buttonPosition]==
+            positions.TOP_LEFT  || positions[this.settings.buttonPosition]==
+            positions.BOTTOM_LEFT) ? Number(test[3])+50 : Number(test[3]);
+        this.css = this.css.replace(
+            '%_MARGINOFFLINE_%',
+            `${top}px ${right}px ${bottom}px ${left}px` || '10px'
+        );
+        this.css = this.css.replace(
+            '%_MINIMIZE_ICON_URL_%',
+            this.settings.minimizeIconUrl
+        );
+        this.css = this.css.replace(
+            '%_MAXIMIZE_ICON_URL_%',
+            this.settings.maximizeIconUrl
+        );
+        this.css = this.css.replace(
+            '%_POSITION_%',
+            positions[this.settings.buttonPosition] ||
+                positions.TOP_RIGHT
+        );
+        this.css = this.css.replace(
+            '%_POSITIONOFFLINE_%',
+            positions[this.settings.buttonPosition] ||
+                positions.TOP_RIGHT
+        );
+
         css.setAttribute(
             'href',
             `data:text/css;base64,${btoa(this.css)}`
         );
         document.head.appendChild(css);
-        console.log(this.settings);
         if (this.settings.urls.length>1 && this.settings.showMinimizeButton && this.preference.index == 0) {
                 const control = document.createElement('div');
                 control.setAttribute('class', 'control-container');
@@ -164,6 +206,7 @@ class AppView {
                     }
                 });
             }
+            
         if (this.settings.urls.length>1 && this.preference.index == 0)
         {
             const offline_btn = document.createElement('div');
