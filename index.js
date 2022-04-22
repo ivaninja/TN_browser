@@ -343,7 +343,7 @@ class MainProcess {
         console.log('clean cache');
         for (let i in this.windows) {
             await this.windows[i].webContents.session.clearCache();
-            if (reload) this.windows[i].reload();
+            // if (reload) this.windows[i].reload();
         }
     }
 

@@ -52,7 +52,6 @@ class AppView {
     async init(event, arg) {
         this.settings = arg.settings;
         this.displays = arg.displays;
-        // console.log(arg);
         this.win.setTitle(this.settings.title);
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -146,7 +145,6 @@ class AppView {
             BOTTOM_LEFT: ['bottom: 0;', 'left: 0;'].join('\n'),
             BOTTOM_RIGHT: ['bottom: 0;', 'right: 0;'].join('\n')
         };
-        console.log(this.settings.buttonMargin);
         this.css = this.css.replace(
             '%_MARGIN_%',
             this.settings.buttonMargin || '10px'
@@ -189,7 +187,7 @@ class AppView {
             `data:text/css;base64,${btoa(this.css)}`
         );
         document.head.appendChild(css);
-        if (this.settings.urls.length>1 && this.settings.showMinimizeButton && this.preference.index == 0) {
+        if ((this.preference.url.indexOf("display")==-1) && this.settings.showMinimizeButton) {
                 const control = document.createElement('div');
                 control.setAttribute('class', 'control-container');
                 control.setAttribute('data-selector', 'control-container');
@@ -207,7 +205,7 @@ class AppView {
                 });
             }
             
-        if (this.settings.urls.length>1 && this.preference.index == 0)
+        if (this.preference.url.indexOf("display") ==-1)
         {
             const offline_btn = document.createElement('div');
             offline_btn.setAttribute('class', 'offline_icon');
