@@ -205,7 +205,7 @@ class AppView {
                 });
             }
             
-        if (this.preference.url.indexOf("display") ==-1)
+        if ((this.preference.url.indexOf("display") ==-1) && (this.settings.showOfflineButton))
         {
             const offline_btn = document.createElement('div');
             offline_btn.setAttribute('class', 'offline_icon');

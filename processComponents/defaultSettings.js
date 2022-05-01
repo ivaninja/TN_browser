@@ -9,6 +9,7 @@ module.exports = function ({ workDirectory, version, isDev }) {
         buttonPosition: 'TOP_RIGHT', // TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT
         buttonMargin: '10px 10px 10px 10px',
         showMinimizeButton: false,
+        showOfflineButton: false,
         minimizeIconUrl:
             'https://damfastore-magdeburg.kassesvn.tn-rechenzentrum1.de/img/fullscreen_close.png',
         maximizeIconUrl:
