@@ -35,10 +35,13 @@ module.exports = function (event, content) {
     this.printWin.loadURL('file://' + this.dirPath + '/receipt.html');
     // view.loadURL('file://' + this.dirPath + '/receipt.html');
 
-    console.log(`print`, this.dirPath);
+    // console.log(`print`, this.dirPath);
     this.printWin.webContents.on('did-finish-load', () => {
-        const newContent = content.replace('Monaco', this.settings.printFont);
-        this.printWin.webContents.send('setContent', newContent);
+        /*TEST WITHOUT FONT
+        // const newContent = content.replace('Monaco', this.settings.printFont);
+        // this.printWin.webContents.send('setContent', newContent);
+        */
+        this.printWin.webContents.send('setContent', content);
     });
     // view.webContents.on('did-finish-load', () => {
     //     this.printWin.webContents.send('setContent', content);
