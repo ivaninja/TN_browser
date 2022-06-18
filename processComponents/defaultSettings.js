@@ -32,5 +32,7 @@ module.exports = function ({ workDirectory, version, isDev }) {
         ],
         version,
         printFont: 'Arial',
+        whitelist : [],
+        ticketPrinter: 'Foxit Reader PDF Printer'
     };
 };

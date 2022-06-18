@@ -1,7 +1,7 @@
 const { BrowserWindow, BrowserView } = require('electron');
 const path = require('path');
 
-module.exports = function (event, content) {
+module.exports = function (event, content, printer="") {
     this.printWin = null;
     this.printWin = new BrowserWindow({
         show: this.settings.devShowPrintWindow,
@@ -37,11 +37,11 @@ module.exports = function (event, content) {
 
     // console.log(`print`, this.dirPath);
     this.printWin.webContents.on('did-finish-load', () => {
-        /*TEST WITHOUT FONT
-        // const newContent = content.replace('Monaco', this.settings.printFont);
-        // this.printWin.webContents.send('setContent', newContent);
-        */
-        this.printWin.webContents.send('setContent', content);
+        /*TEST WITHOUT FONT*/
+        const newContent = content.replace('Monaco', this.settings.printFont);
+        this.printWin.webContents.send('setContent', newContent, printer);
+        
+        //this.printWin.webContents.send('setContent', content);
     });
     // view.webContents.on('did-finish-load', () => {
     //     this.printWin.webContents.send('setContent', content);

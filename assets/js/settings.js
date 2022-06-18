@@ -40,8 +40,11 @@ class AppViewSettings {
 
         this.cancelSelector = document.querySelector('[data-selector="cancel-btn"]');
         this.addUrlSel = document.querySelector('[data-selector="addUrl"]');
+        this.addUrlWhitelist = document.querySelector('[data-selector="addUrlWhitelist"]');
 
         this.urlsInputs = document.querySelector('[data-selector="urls-inputs"]');
+        this.whiteurls = document.querySelector('[data-selector="whiteurls"]');
+        this.whiteurlInput = document.querySelector('[data-selector="whiteurl"]');
 
 
         this.init();
@@ -63,8 +66,19 @@ class AppViewSettings {
             this.renderUrlsInputs();
         });
 
+        this.addUrlWhitelist.addEventListener('click', () => {
+
+            this.model.whitelist.push(this.whiteurlInput.value);
+
+            this.renderWhitelist();
+
+            this.whiteurlInput.value = '';
+        });
+
+        
 
         this.renderUrlsInputs();
+        this.renderWhitelist();
 
         document.querySelectorAll('[model]')
             .forEach((item) => {
@@ -149,6 +163,11 @@ class AppViewSettings {
         this.renderUrlsInputs();
     }
 
+    removeWhitelistItemF(index) {
+        this.model.whitelist.splice(index, 1);
+        this.renderWhitelist();
+    }
+
     renderUrlsInputs() {
         this.urlsInputs.innerHTML = "";
 
@@ -160,7 +179,8 @@ class AppViewSettings {
                 // zoom: 1,
             });
         });
-
+        console.log(this.urlsInputs.innerHTML);
+        console.log('ddd');
         const removeUrlItem = document.querySelectorAll(`[data-action="removeUrlItem"]`);
         const setUrlItemDisplay = document.querySelectorAll(`[data-action="setUrlItemDisplay"]`);
         const setUrlItemUrl = document.querySelectorAll(`[data-action="setUrlItemUrl"]`);
@@ -230,6 +250,35 @@ class AppViewSettings {
             index,
             options,
         });
+    }
+
+    createWhitelistItem({index = 0, url = '',}) {
+        const urlTemplate = this.getTemplate(`url-whitelist`);
+        
+        return this.addDataToTemplate(urlTemplate, {
+            containerSelector: 'WhitelistItem',
+            url,
+            index,            
+        });
+    }
+
+    renderWhitelist() {
+        this.whiteurls.innerHTML = "";
+
+        this.model.whitelist.forEach((url, index) => {
+            this.whiteurls.innerHTML += this.createWhitelistItem({
+                index,
+                url
+            });
+        });
+        console.log(this.whiteurls.innerHTML);
+        const removeWhitelistItem = document.querySelectorAll(`[data-action="removeWhitelistItem"]`);
+        
+        removeWhitelistItem.forEach((item, index) => {
+            item.onclick = (ev) => {
+                this.removeWhitelistItemF(Number(ev.target.dataset.index));
+            };
+        })        
     }
 
     getTemplate(id) {

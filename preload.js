@@ -58,13 +58,19 @@ class AppView {
             ipcRenderer.send('show-context-menu');
         });
         window.print = () => {
-            ipcRenderer.send('print', document.body.innerHTML);
+            ipcRenderer.send('print', document.body.innerHTML, 'default');
         };
 
         // console.log(`typeof print_check:`, typeof print_check)
         if (typeof print_check === 'function') {
             window.print_check = (html) => {
-                ipcRenderer.send('print', html);
+                ipcRenderer.send('print', html, 'default');
+            };
+        }
+
+        if (typeof print_ticket === 'function') {
+            window.print_ticket = (html) => {
+                ipcRenderer.send('print', html, 'ticket');
             };
         }
 

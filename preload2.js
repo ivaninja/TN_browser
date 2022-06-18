@@ -6,7 +6,7 @@ function loaded(node) {
     });
 }
 
-ipcRenderer.on('setContent', async (event, content) => {
+ipcRenderer.on('setContent', async (event, content, printer) => {
     document.write(content);
     let images = document.querySelectorAll(`img`);
 
@@ -16,5 +16,8 @@ ipcRenderer.on('setContent', async (event, content) => {
     } catch (e) {
         console.error(`images not loaded`, e);
     }
-    ipcRenderer.send('readyToPrint');
+    if(printer=="ticket")
+        ipcRenderer.send('readyToPrintOther');
+    else
+        ipcRenderer.send('readyToPrint');
 });

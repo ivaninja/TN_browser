@@ -6,11 +6,13 @@ const {
     session,
     screen,
     contentTracing,
+    Notification,
+    url
 } = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
-
+const Url = require('url');
 const { version } = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
@@ -22,6 +24,7 @@ const onPrint = require('./processComponents/onPrint');
 const initUpdates = require('./processComponents/initUpdates');
 const workDirectory = require('./processComponents/workDirectory');
 const readyToPrint = require('./processComponents/readyToPrint');
+const readyToPrintOther = require('./processComponents/readyToPrintOther');
 const defaultSettings = require('./processComponents/defaultSettings');
 const checkOnline = require('./processComponents/checkOnline');
 
@@ -41,7 +44,7 @@ class MainProcess {
         this.dirPath = __dirname;
         this.isDev = isDev;
         this.workDirectory = workDirectory(this.isDev);
-
+        this.app.setAppUserModelId('TN Browser');
         this.updateWin = null; // used ./processComponents/initUpdates.js
         this.printWin = null;
         this.win = null;
@@ -145,6 +148,12 @@ class MainProcess {
         });
     }
 
+    
+
+    showNotification (title, body) {
+        new Notification({ title: title, body: body }).show()
+    }
+
     initEvents() {
         this.app.on('second-instance', secondInstance.bind(this));
         this.app.on('window-all-closed', () => {
@@ -157,6 +166,7 @@ class MainProcess {
         );
         this.ipcMain.on('print', onPrint.bind(this));
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
+        this.ipcMain.on('readyToPrintOther', readyToPrintOther.bind(this));
         this.ipcMain.on('show-context-menu', (event) => {
             return false;
         });
@@ -201,6 +211,67 @@ class MainProcess {
         win.on('closed', (event) => {
             win = null;
         });
+        win.webContents.on('will-navigate', (event, url) => {
+            var testUrl = Url.parse(url);
+            let allowedUrls = [];
+            this.settings.urls.forEach(element => {
+                let testUrl1 = Url.parse(element.url);
+                let testUrl2 = Url.parse(element.offlineUrl);
+                allowedUrls.push(testUrl1.host, testUrl2.host);
+            });
+            this.settings.whitelist.forEach(element => {
+                let testUrl1 = Url.parse(element);                
+                allowedUrls.push(testUrl1.host);
+            });
+            if(!allowedUrls.includes(testUrl.host))
+            {
+                this.showNotification('Error', 'Forbidden link');
+                event.preventDefault();
+            }
+            /*console.log('test');
+            console.log(win.webContents.findInPage('iframe'));
+            console.log(win.webContents.executeJavaScript(`function gethtml () {
+                return new Promise((resolve, reject) => { resolve(document.getElementsByTagName("iframe")); });
+                }
+                gethtml();`).then((html) => {
+            // var title = html.match(/<iframe[^>]*>([^<]+)<\/iframe>/);
+            console.log(html);
+                // sending the HTML to the function extractLinks
+                // extractLinks(html)
+              }));  
+            */
+
+        });
+        /*win.webContents.on('frame-created', (event, details)=>{
+            console.log('iframe');
+            
+        });*/
+        /*win.webContents.on('dom-ready', () => {
+  
+            // we can get its URL and display it in the console
+            let currentURL = win.getURL()
+            console.log('currentURL is : ' + currentURL)
+          
+            // same thing about the title of the page
+            let titlePage = win.getTitle()  
+            console.log('titlePage is : ' + titlePage)
+          
+            // executing Javascript into the webview to get the full HTML
+            win.webContents.executeJavaScript(`function gethtml () {
+              return new Promise((resolve, reject) => { resolve(document.documentElement.innerHTML); });
+              }
+              gethtml();`).then((html) => {
+        //   console.log(html);
+              // sending the HTML to the function extractLinks
+            //   extractLinks(html)
+            })  
+          })*/
+
+        // win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        //     console.log(details.responseHeaders);
+        //     console.log('seek iframe');
+        //     callback({ responseHeaders: Object.fromEntries(Object.entries(details.responseHeaders).filter(header => !/x-frame-options/i.test(header[0]))) });
+        // });
 
         win.loadFile('./splash.html');
 
@@ -250,7 +321,7 @@ class MainProcess {
             kiosk,
             title,
             frame,
-            icon: './assets/favicon.ico',
+            icon: './assets/favicon_new.ico',
             preference,
             webPreferences: {
                 nativeWindowOpen: true,

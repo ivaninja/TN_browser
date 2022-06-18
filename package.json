@@ -1,6 +1,6 @@
 {
     "name": "tn-browser",
-    "version": "1.0.28",
+    "version": "1.0.29",
     "description": "Private Browser",
     "main": "index.js",
     "scripts": {
@@ -23,7 +23,7 @@
         "jquery": "^3.5.1"
     },
     "build": {
-        "icon": "./assets/icon_256.ico",
+        "icon": "./assets/icon_256_new.ico",
         "appId": "ag.telenorma.tnbrowser",
         "publish": [
             {
