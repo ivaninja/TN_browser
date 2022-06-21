@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const request = require('request');
 const ptp  =  require("pdf-to-printer");
+const os = require("os");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function getPdf(url, filePath, printer) {
@@ -12,11 +13,21 @@ async function getPdf(url, filePath, printer) {
   file.pipe(ws);
   file.on("end", function()  
   {
-    ptp.print(filePath, options).then(console.log("printing done"));    
+    ptp.print(filePath, options).then(console.log("printing done")).catch((e)=>console.log(e));    
   });
 }
 
 module.exports = function (event, url) {
-    const filePath = path.join(__dirname, "tmp.pdf");
-    getPdf(url, filePath, this.settings.ticketPrinter);    
+    const userHomeDir = os.homedir();
+    const filePath = path.join(userHomeDir, "tmp.pdf");
+    console.log(filePath);
+    try
+    {
+      getPdf(url, filePath, this.settings.ticketPrinter);    
+    }
+    catch(e)
+    {
+      console.log(e);
+    }
+    
 };
