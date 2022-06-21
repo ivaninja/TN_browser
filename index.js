@@ -21,6 +21,7 @@ const randomId = require('./helpers/randomId');
 const requestMainProcessAction = require('./processComponents/requestMainProcessAction');
 const secondInstance = require('./processComponents/secondInstance');
 const onPrint = require('./processComponents/onPrint');
+const onPrintPDF = require('./processComponents/onPrintPDF');
 const initUpdates = require('./processComponents/initUpdates');
 const workDirectory = require('./processComponents/workDirectory');
 const readyToPrint = require('./processComponents/readyToPrint');
@@ -165,6 +166,7 @@ class MainProcess {
             requestMainProcessAction.bind(this)
         );
         this.ipcMain.on('print', onPrint.bind(this));
+        this.ipcMain.on('printPdf', onPrintPDF.bind(this));
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
         this.ipcMain.on('readyToPrintOther', readyToPrintOther.bind(this));
         this.ipcMain.on('show-context-menu', (event) => {

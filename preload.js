@@ -73,6 +73,12 @@ class AppView {
                 ipcRenderer.send('print', html, 'ticket');
             };
         }
+        if (typeof print_pdf === 'function') {
+            window.print_pdf = (url) => {
+                console.log(url);
+                ipcRenderer.send('printPdf', url);
+            };
+        }
 
         const isDebug = this.settings.debug;
 
