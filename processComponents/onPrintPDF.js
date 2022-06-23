@@ -4,6 +4,7 @@ const fs = require('fs');
 const request = require('request');
 const ptp  =  require("pdf-to-printer");
 const os = require("os");
+const Url = require('url');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function getPdf(url, filePath, printer) {
@@ -19,8 +20,10 @@ async function getPdf(url, filePath, printer) {
 
 module.exports = function (event, url) {
     const userHomeDir = os.homedir();
-    const filePath = path.join(userHomeDir, "tmp.pdf");
-    console.log(filePath);
+  // const userHomeDir = 'test';
+    var test = Url.parse(url);
+    var testarr = test.path.split('/');
+    const filePath = path.join(userHomeDir, String(testarr.slice(-1)));
     try
     {
       getPdf(url, filePath, this.settings.ticketPrinter);    
