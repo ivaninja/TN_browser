@@ -3,5 +3,6 @@ module.exports = function(event, arg) {
         action: 'init',
         settings: this.settings,
         displays: this.screen.getAllDisplays(),
+        printers: this.printers 
     });
 }

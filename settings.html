@@ -99,12 +99,28 @@
                         <label class="col-sm-2 col-form-label"
                             >Select font for printing</label
                         >
-                        <div class="col-sm-10">
+                        <div class="col-sm-6">
                             <select model="printFont" class="form-control">
                                 <option value="Arial">Arial</option>
                                 <option value="Monaco">Monaco</option>
                             </select>
                         </div>
+                        <div class="col-sm-4">
+                            <div class="form-group form-check">
+                                <label class="form-check-label">
+                                    <input
+                                        model="changeFont"
+                                        type="checkbox"
+                                        class="form-check-input"
+                                    />
+                                    Apply fonts ?</label
+                                >
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                        
                     </div>
 
                     <div class="row bg-light border m-0 py-3 mb-3">
@@ -273,7 +289,17 @@
 
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label"
-                            >Add White list url</label
+                            >Select alternative printer</label
+                        >
+                        <div class="col-sm-10">
+                            <div class="mx-3" data-selector="ticketPrinter"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Add allowed url</label
                         >
                         <div class="col-sm-9">
                             <input
@@ -290,7 +316,8 @@
                                 +
                             </div>
                         </div>
-                    </div>
+                    </div>                   
+
                     <div  class="form-group row">
                         <div class="col-sm-2 p-0"></div>
                         <div class="col-sm-10 p-0">
@@ -349,6 +376,18 @@
         <script type="html/template" id="display-option">
             <option {{selected}} value="{{value}}">{{name}}</option>
         </script>
+
+        <script type="html/template" id="printer-option">
+            <option {{selected}} value="{{name}}">{{name}}</option>
+        </script>
+
+        <script type="html/template" id="printer-select">
+            <select model="ticketPrinter" class="form-control">
+                <option disabled>Choose printer</option>
+                {{options}}
+            </select>
+        </script>
+
 
         <script type="html/template" id="url-whitelist">
             <div data-selector="{{containerSelector}}" class="row m-0 py-3 odd">

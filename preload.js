@@ -11,6 +11,7 @@ class AppView {
         this.win = this.remote.getCurrentWindow();
         this.ipcRenderer = ipcRenderer;
         this.displays = [];
+        this.printers = [];
         this.preference = this.win.webContents.browserWindowOptions.preference;
 
         this.css = `
@@ -52,6 +53,7 @@ class AppView {
     async init(event, arg) {
         this.settings = arg.settings;
         this.displays = arg.displays;
+        this.printers = arg.printers;
         this.win.setTitle(this.settings.title);
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -75,7 +77,6 @@ class AppView {
         }
         if (typeof print_pdf === 'function') {
             window.print_pdf = (url) => {
-                console.log(url);
                 ipcRenderer.send('printPdf', url);
             };
         }

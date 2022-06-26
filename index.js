@@ -50,6 +50,7 @@ class MainProcess {
         this.printWin = null;
         this.win = null;
         this.windows = [];
+        this.printers = [];
         this.closedWindowIndexes = [];
         this.isRedirectedToError = false;
         this.isOnline = null;
@@ -364,6 +365,7 @@ class MainProcess {
             preload: 'preload.js'
         });
 
+        this.printers = win.webContents.getPrinters();
         return win;
     }
 

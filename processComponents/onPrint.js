@@ -37,11 +37,13 @@ module.exports = function (event, content, printer="") {
 
     // console.log(`print`, this.dirPath);
     this.printWin.webContents.on('did-finish-load', () => {
-        /*TEST WITHOUT FONT*/
-        const newContent = content.replace('Monaco', this.settings.printFont);
-        this.printWin.webContents.send('setContent', newContent, printer);
-        
-        //this.printWin.webContents.send('setContent', content);
+        if(this.settings.changeFont)
+        {
+            const newContent = content.replace('Monaco', this.settings.printFont);
+            this.printWin.webContents.send('setContent', newContent, printer);
+        }
+        else
+            this.printWin.webContents.send('setContent', content);
     });
     // view.webContents.on('did-finish-load', () => {
     //     this.printWin.webContents.send('setContent', content);

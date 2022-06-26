@@ -35,7 +35,7 @@ class AppViewSettings {
         };
 
         this.displays = _APP_.displays;
-
+        this.printers = _APP_.printers.map(a => a.name);
         this.settings = settings;
 
         this.cancelSelector = document.querySelector('[data-selector="cancel-btn"]');
@@ -45,6 +45,7 @@ class AppViewSettings {
         this.urlsInputs = document.querySelector('[data-selector="urls-inputs"]');
         this.whiteurls = document.querySelector('[data-selector="whiteurls"]');
         this.whiteurlInput = document.querySelector('[data-selector="whiteurl"]');
+        this.ticketPrinter = document.querySelector('[data-selector="ticketPrinter"]');
 
 
         this.init();
@@ -79,6 +80,7 @@ class AppViewSettings {
 
         this.renderUrlsInputs();
         this.renderWhitelist();
+        this.renderPrinterSelect()
 
         document.querySelectorAll('[model]')
             .forEach((item) => {
@@ -179,8 +181,6 @@ class AppViewSettings {
                 // zoom: 1,
             });
         });
-        console.log(this.urlsInputs.innerHTML);
-        console.log('ddd');
         const removeUrlItem = document.querySelectorAll(`[data-action="removeUrlItem"]`);
         const setUrlItemDisplay = document.querySelectorAll(`[data-action="setUrlItemDisplay"]`);
         const setUrlItemUrl = document.querySelectorAll(`[data-action="setUrlItemUrl"]`);
@@ -229,6 +229,11 @@ class AppViewSettings {
 
     }
 
+    renderPrinterSelect(){
+        this.ticketPrinter.innerHTML = "";
+        this.ticketPrinter.innerHTML += this.createPrintersSelect();
+    }
+
     createUrlInput({value = '', index = 0, displayId = 0,}) {
         let options = ``;
         const optionsTemplate = this.getTemplate(`display-option`);
@@ -252,6 +257,22 @@ class AppViewSettings {
         });
     }
 
+    createPrintersSelect(){
+        let options = ``;
+        const optionsTemplate = this.getTemplate(`printer-option`);
+        const printerTemplate = this.getTemplate(`printer-select`);
+        this.printers.forEach((item) => {
+            options += this.addDataToTemplate(optionsTemplate, {                
+                name: item,
+                selected: item === this.model.ticketPrinter ? 'selected' : ''
+            });
+        });
+        return this.addDataToTemplate(printerTemplate, {            
+            options,
+        });
+
+    }
+
     createWhitelistItem({index = 0, url = '',}) {
         const urlTemplate = this.getTemplate(`url-whitelist`);
         
@@ -271,7 +292,6 @@ class AppViewSettings {
                 url
             });
         });
-        console.log(this.whiteurls.innerHTML);
         const removeWhitelistItem = document.querySelectorAll(`[data-action="removeWhitelistItem"]`);
         
         removeWhitelistItem.forEach((item, index) => {
