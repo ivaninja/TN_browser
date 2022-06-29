@@ -34,6 +34,9 @@ module.exports = function ({ workDirectory, version, isDev }) {
         printFont: 'Arial',
         whitelist : [],
         ticketPrinter: 'Microsoft Print to PDF',
-        changeFont:true
+        changeFont:true,
+        guestwidth:1020,
+        guestheight:925,
+        checkOnlineUrl:'www.google.com'
     };
 };

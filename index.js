@@ -88,7 +88,7 @@ class MainProcess {
             return;
         }
 
-        this.isOnline = await checkConnection();
+        this.isOnline = await checkConnection(this.settings.checkOnlineUrl);
         _logger.log(`isOnline: `, this.isOnline);
 
         await this.initSettings();
@@ -249,6 +249,9 @@ class MainProcess {
             event.preventDefault()
             const win = new BrowserWindow({
               webContents: options.webContents, // use existing webContents if provided
+              width: this.settings.guestwidth, 
+              height: this.settings.guestheight,
+              icon: './assets/favicon_new.ico',
               show: false
             })
             win.setKiosk(false);
