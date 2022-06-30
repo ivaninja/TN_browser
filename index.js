@@ -56,6 +56,7 @@ class MainProcess {
         this.isOnline = null;
         this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
         this.app.commandLine.appendSwitch('disable-gpu', 'true');
+        this.app.commandLine.appendSwitch('enable-touch-events', 'true');
         this.app.disableHardwareAcceleration();
 
         this.settings = defaultSettings({
