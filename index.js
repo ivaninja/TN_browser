@@ -13,6 +13,7 @@ const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
 const Url = require('url');
+const { ConnectionBuilder } = require('electron-cgi');
 const { version } = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
@@ -35,6 +36,26 @@ const cancelSettings = require('./actions/cancelSettings');
 
 const defaultOfflineUrl = `http://error.kassesvn.tn-rechenzentrum1.de/`;
 
+app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+app.commandLine.appendSwitch('disable-gpu', 'true');
+app.commandLine.appendSwitch('touch', 'true');
+app.commandLine.appendSwitch('touch-events', 'true');
+app.commandLine.appendSwitch('enable-touch-events', 'true');
+app.disableHardwareAcceleration();
+
+try{
+    const connection = new ConnectionBuilder()
+        .connectTo('dotnet', 'run', '--project', path.join('C:','Program Files (x86)', 'Company', 'TouchDetector', 'TouchDetector.exe'))
+        .build();
+    console.log(connection);
+    connection.onDisconnect = () => {
+        console.log('Lost connection to the .Net process');
+    };    
+}
+catch (e) {
+    console.error(e);
+}
+
 class MainProcess {
     constructor() {
         this.app = app;
@@ -54,10 +75,7 @@ class MainProcess {
         this.closedWindowIndexes = [];
         this.isRedirectedToError = false;
         this.isOnline = null;
-        this.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-        this.app.commandLine.appendSwitch('disable-gpu', 'true');
-        this.app.commandLine.appendSwitch('enable-touch-events', 'true');
-        this.app.disableHardwareAcceleration();
+        
 
         this.settings = defaultSettings({
             version,
@@ -446,6 +464,15 @@ class MainProcess {
         for (let i in this.windows) {
             await this.windows[i].webContents.session.clearCache();
             // if (reload) this.windows[i].reload();
+        }
+    }
+
+    async sendCoords(event, arg) {
+        try{
+            const csharp = await connection.send('touch', arg.data);
+            console.log(csharp);
+        }catch (err) {
+            console.log(err); //err is the serialized exception thrown in the .NET handler for the greeting request
         }
     }
 
