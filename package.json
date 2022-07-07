@@ -1,6 +1,6 @@
 {
     "name": "tn-browser",
-    "version": "1.0.38",
+    "version": "1.0.39",
     "description": "Private Browser",
     "main": "index.js",
     "scripts": {
@@ -17,7 +17,6 @@
         "electron-builder": "^20.28.4"
     },
     "dependencies": {
-        "electron-cgi": "^1.0.6",
         "electron-is-dev": "^1.2.0",
         "electron-log": "^4.2.4",
         "electron-pdf-window": "^1.0.12",
@@ -41,6 +40,11 @@
                 "nsis",
                 "nsis-web"
             ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": true,
+            "include":"build/installer.nsh"
         }
     }
 }

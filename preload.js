@@ -285,16 +285,6 @@ class AppView {
             },
             false
         );
-
-        function printPos(event) {
-            console.log("clientX: " + event.clientX +
-              " - clientY: " + event.clientY);
-              ipcRenderer.send('request-mainprocess-action', {
-                action: 'sendCoords',
-                data : event.clientX + "," + event.clientY
-            }); 
-          }
-        window.addEventListener("click", printPos);
     }
 }
 

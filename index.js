@@ -6,14 +6,12 @@ const {
     session,
     screen,
     contentTracing,
-    Notification,
-    url
+    Notification
 } = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
 const Url = require('url');
-const { ConnectionBuilder } = require('electron-cgi');
 const { version } = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
@@ -43,19 +41,6 @@ app.commandLine.appendSwitch('touch-events', 'true');
 app.commandLine.appendSwitch('enable-touch-events', 'true');
 app.disableHardwareAcceleration();
 
-try{
-    const connection = new ConnectionBuilder()
-        .connectTo('dotnet', 'run', '--project', path.join('C:','Program Files (x86)', 'Company', 'TouchDetector', 'TouchDetector.exe'))
-        .build();
-    console.log(connection);
-    connection.onDisconnect = () => {
-        console.log('Lost connection to the .Net process');
-    };    
-}
-catch (e) {
-    console.error(e);
-}
-
 class MainProcess {
     constructor() {
         this.app = app;
@@ -76,7 +61,6 @@ class MainProcess {
         this.isRedirectedToError = false;
         this.isOnline = null;
         
-
         this.settings = defaultSettings({
             version,
             workDirectory: this.workDirectory,
@@ -168,7 +152,6 @@ class MainProcess {
             return item;
         });
     }
-
     
 
     showNotification (title, body) {
@@ -250,7 +233,7 @@ class MainProcess {
                 this.showNotification('Error', 'Forbidden link');
                 event.preventDefault();
             }
-            /*console.log('test');
+            /*
             console.log(win.webContents.findInPage('iframe'));
             console.log(win.webContents.executeJavaScript(`function gethtml () {
                 return new Promise((resolve, reject) => { resolve(document.getElementsByTagName("iframe")); });
@@ -266,16 +249,23 @@ class MainProcess {
         });
         win.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures, referrer, postBody) => {
             event.preventDefault()
-            const win = new BrowserWindow({
+            const winG = new BrowserWindow({
               webContents: options.webContents, // use existing webContents if provided
               width: this.settings.guestwidth, 
               height: this.settings.guestheight,
               icon: './assets/favicon_new.ico',
-              show: false
+              show: false,
+              webPreferences: {
+                nativeWindowOpen: true,
+                webSecurity: false,
+                allowRunningInsecureContent: true,
+                enableRemoteModule: true,
+                preload: path.join(__dirname, 'preload.js'), // use a preload script
+            },
             })
-            win.setKiosk(false);
-            win.removeMenu();
-            win.once('ready-to-show', () => win.show())
+            winG.setKiosk(false);
+            winG.removeMenu();
+            winG.once('ready-to-show', () => winG.show())
             if (!options.webContents) {
               const loadOptions = {
                 httpReferrer: referrer
@@ -286,10 +276,21 @@ class MainProcess {
                 loadOptions.extraHeaders = `content-type: ${contentType}; boundary=${boundary}`
               }
           
-              win.loadURL(url, loadOptions) // existing webContents will be navigated automatically
+              winG.loadURL(url, loadOptions) // existing webContents will be navigated automatically
             }
-            event.newGuest = win
-          })
+            event.newGuest = winG
+          });
+
+
+        //   win.webContents.on(
+        //     'did-frame-navigate',
+        //     (event, url, httpResponseCode, httpStatusText, isMainFrame, frameProcessId, frameRoutingId) => {
+        //         console.log(url);
+        //         console.log("isMainFrame->"+isMainFrame);
+        //         const frame = webFrameMain.fromId(frameProcessId, frameRoutingId)
+
+        //     }
+        //   )
         /*win.webContents.on('frame-created', (event, details)=>{
             console.log('iframe');
             
@@ -467,14 +468,15 @@ class MainProcess {
         }
     }
 
-    async sendCoords(event, arg) {
-        try{
-            const csharp = await connection.send('touch', arg.data);
-            console.log(csharp);
-        }catch (err) {
-            console.log(err); //err is the serialized exception thrown in the .NET handler for the greeting request
-        }
-    }
+    // async sendCoords(event, arg) {
+    //     try
+    //     {
+    //         const response = await fetch('http://localhost:7000/coordinates', {method: 'POST', body: arg.data});            
+    //     }
+    //     catch(e){
+    //         console.log(e);
+    //     }        
+    // }
 
     goToOffline() {
         let options = {
