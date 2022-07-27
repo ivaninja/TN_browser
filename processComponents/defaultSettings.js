@@ -37,6 +37,7 @@ module.exports = function ({ workDirectory, version, isDev }) {
         changeFont:true,
         guestwidth:1020,
         guestheight:925,
-        checkOnlineUrl:'www.google.com'
+        checkOnlineUrl:'www.google.com',
+        VRKiosk:false
     };
 };

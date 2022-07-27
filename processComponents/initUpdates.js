@@ -1,8 +1,10 @@
 const {autoUpdater} = require("electron-updater");
+const { ipcMain } = require('electron');
 
 module.exports = function () {
     this.autoUpdater = autoUpdater;
-
+    this.ipcMain = ipcMain;
+    this.innerSettings = this.settings;
     if (this.isDev || !this.isOnline) {
         this.start({});
         return
@@ -52,7 +54,12 @@ module.exports = function () {
 
     // this.updateWin.loadFile(`./update.html?version=${this.settings.version}`);
     this.updateWin.loadFile(`./update.html`);
-
+    this.ipcMain.on('variable-request', function (event, arg) {
+        console.log(arg);
+        // console.log(event.webContents.browserWindowOptions.preference);
+        // event.sender.send('version', {version: settings.version});
+    });
+    // this.updateWin.webContents.send('version', {version: this.settings.version});
     if (this.settings.debug) {
         this.updateWin.webContents.openDevTools();
     }

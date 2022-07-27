@@ -12,6 +12,7 @@ const isDev = require('electron-is-dev');
 const path = require('path');
 const fs = require('fs');
 const Url = require('url');
+const axios = require("axios");
 const { version } = require('./package.json');
 const setDebug = require('./helpers/setDebug');
 const checkConnection = require('./helpers/checkConnection');
@@ -126,7 +127,37 @@ class MainProcess {
                     ...settings,
                     isOnline: this.isOnline,
                 };
-
+                
+                if(this.settings.VRKiosk == true)
+                {
+                    axios.get("http://localhost:1880/tnbrowserurl").then((res) => {
+                        if((typeof res.data != "undefined")&&(typeof res.data.location != "undefined"))
+                        {
+                            var expiration = new Date();
+                            var hour = expiration.getHours() + 24;
+                            expiration.setHours(hour);
+                            this.settings.urls[0].url = res.data.location;
+                            const cookie_arr = [
+                                { url: res.data.location, name: 'kasse_id', value: res.data.kasse_id.toString(), 'path':'/', expirationDate: expiration.getTime()},
+                                { url: res.data.location, name: 'kasse_user_id', value: res.data.kasse_user_id.toString(), 'path':'/', expirationDate: expiration.getTime()},
+                                { url: res.data.location, name: 'terminal_id', value: res.data.terminal_id.toString(), 'path':'/', expirationDate: expiration.getTime()},
+                                { url: res.data.location, name: 'partner_id', value: res.data.partner_id.toString(), 'path':'/', expirationDate: expiration.getTime()},
+                                { url: res.data.location, name: 'kunde_id', value: res.data.kunde_id.toString(), 'path':'/', expirationDate: expiration.getTime()},
+                                { url: res.data.location, name: 'filial_id', value: res.data.filial_id.toString(), 'path':'/', expirationDate: expiration.getTime()}
+                            ];
+                            session.defaultSession.clearStorageData();
+                            cookie_arr.forEach((cookie)=>{
+                                session.defaultSession.cookies.set(cookie)
+                                .then(() => {
+                                    // success
+                                }, (error) => {
+                                    console.error(error)
+                                })
+                            });                            
+                        }                                                
+                    });
+                }
+                
                 this.settingsMigration();
             } catch (e) {
                 console.error(
@@ -167,7 +198,7 @@ class MainProcess {
         this.ipcMain.on(
             'request-mainprocess-action',
             requestMainProcessAction.bind(this)
-        );
+        ); 
         this.ipcMain.on('print', onPrint.bind(this));
         this.ipcMain.on('printPdf', onPrintPDF.bind(this));
         this.ipcMain.on('readyToPrint', readyToPrint.bind(this));
@@ -185,6 +216,7 @@ class MainProcess {
                 skipSplash: true,
             });
         });
+        this.checkOnline();
         this.closedWindowIndexes = [];
     }
 
@@ -327,7 +359,7 @@ class MainProcess {
         win.webContents.once('did-finish-load', () => {
             setTimeout(
                 () => {
-                    win.loadURL(windowItem.url);
+                    this.isOnline ? win.loadURL(windowItem.url):win.loadURL(windowItem.offlineUrl);
                 },
                 skipSplash ? 10 : this.settings.splashScreenTimeout
             );
@@ -340,9 +372,10 @@ class MainProcess {
         this.removeMenu(win);
 
         if (!this.isOnline) {
-            windowItem.url = windowItem.offlineUrl;
+            // windowItem.url = windowItem.offlineUrl;
             this.isRedirectedToError = true;
-        }
+        }      
+
     }
 
     start({ skipSplash = false }) {
@@ -426,7 +459,7 @@ class MainProcess {
     }
 
     saveSettings(event, arg) {
-        // event, arg
+        // event, arg        
         fs.writeFileSync(
             `${this.workDirectory}/settings.json`,
             JSON.stringify(arg.data, null, '\t')
@@ -435,6 +468,7 @@ class MainProcess {
             ...this.settings,
             ...arg.data,
         };
+        
         const oldWindows = [].concat(this.windows);
         // this.windows = [];
         this.clearCache();

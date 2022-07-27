@@ -1,14 +1,16 @@
 const checkConnection = require('../helpers/checkConnection');
 
 module.exports = async function () {
-    this.isOnline = await checkConnection();    
+    this.isOnline = await checkConnection(this.settings.checkOnlineUrl);    
     if (!this.isOnline) {
         this.windows.forEach((win, index) => {
             let currentURL = win.webContents.getURL();
-            console.log(currentURL);
             var strPos = currentURL.indexOf("offline");
-            if(strPos==-1)            
+            var strPos2 = currentURL.indexOf("error");
+            if((strPos==-1)&&(strPos2==-1))
+            {
                 win.loadURL(this.settings.urls[index].offlineUrl);
+            }            
         });
     }
     

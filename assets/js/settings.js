@@ -46,6 +46,7 @@ class AppViewSettings {
         this.whiteurls = document.querySelector('[data-selector="whiteurls"]');
         this.whiteurlInput = document.querySelector('[data-selector="whiteurl"]');
         this.ticketPrinter = document.querySelector('[data-selector="ticketPrinter"]');
+        this.versionInfo = document.querySelector('[data-selector="versionInfo"]');
 
 
         this.init();
@@ -150,6 +151,7 @@ class AppViewSettings {
                     ev.preventDefault();
                     _APP_.ipcRenderer.send('request-mainprocess-action', {action: 'saveSettings', data: this.model});
                 })
+        this.versionInfo.innerHTML = this.settings.version
     }
 
     getZoom(value) {
