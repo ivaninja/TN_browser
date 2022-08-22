@@ -6,7 +6,8 @@ const {
     session,
     screen,
     contentTracing,
-    Notification
+    Notification,
+    Menu
 } = require('electron');
 const isDev = require('electron-is-dev');
 const path = require('path');
@@ -41,6 +42,7 @@ app.commandLine.appendSwitch('touch', 'true');
 app.commandLine.appendSwitch('touch-events', 'true');
 app.commandLine.appendSwitch('enable-touch-events', 'true');
 app.disableHardwareAcceleration();
+Menu.setApplicationMenu(false);
 
 class MainProcess {
     constructor() {
@@ -281,7 +283,7 @@ class MainProcess {
         });
         win.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures, referrer, postBody) => {
             event.preventDefault()
-            const winG = new BrowserWindow({
+            var winG = new BrowserWindow({
               webContents: options.webContents, // use existing webContents if provided
               width: this.settings.guestwidth, 
               height: this.settings.guestheight,
@@ -297,7 +299,10 @@ class MainProcess {
             })
             winG.setKiosk(false);
             winG.removeMenu();
-            winG.once('ready-to-show', () => winG.show())
+            winG.once('ready-to-show', () => winG.show());
+            winG.on('closed', (event) => {
+                winG = null;
+            });
             if (!options.webContents) {
               const loadOptions = {
                 httpReferrer: referrer
