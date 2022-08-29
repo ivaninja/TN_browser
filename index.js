@@ -57,6 +57,7 @@ class MainProcess {
         this.app.setAppUserModelId('TN Browser');
         this.updateWin = null; // used ./processComponents/initUpdates.js
         this.printWin = null;
+        this.winG = null;
         this.win = null;
         this.windows = [];
         this.printers = [];
@@ -157,7 +158,7 @@ class MainProcess {
                                 })
                             });                            
                         }                                                
-                    });
+                    }).catch(error => console.log(error));
                 }
                 
                 this.settingsMigration();
@@ -281,9 +282,12 @@ class MainProcess {
             */
 
         });
+        if(this.settings.VRKiosk == true)
+        {
         win.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures, referrer, postBody) => {
-            event.preventDefault()
-            var winG = new BrowserWindow({
+            event.preventDefault();
+            this.winG = null;
+            this.winG = new BrowserWindow({
               webContents: options.webContents, // use existing webContents if provided
               width: this.settings.guestwidth, 
               height: this.settings.guestheight,
@@ -297,11 +301,11 @@ class MainProcess {
                 preload: path.join(__dirname, 'preload.js'), // use a preload script
             },
             })
-            winG.setKiosk(false);
-            winG.removeMenu();
-            winG.once('ready-to-show', () => winG.show());
-            winG.on('closed', (event) => {
-                winG = null;
+            this.winG.setKiosk(false);
+            this.winG.removeMenu();
+            this.winG.once('ready-to-show', () => this.winG.show());
+            this.winG.on('closed', (event) => {
+                this.winG = null;
             });
             if (!options.webContents) {
               const loadOptions = {
@@ -313,11 +317,11 @@ class MainProcess {
                 loadOptions.extraHeaders = `content-type: ${contentType}; boundary=${boundary}`
               }
           
-              winG.loadURL(url, loadOptions) // existing webContents will be navigated automatically
+              this.winG.loadURL(url, loadOptions) // existing webContents will be navigated automatically
             }
-            event.newGuest = winG
+            event.newGuest = this.winG
           });
-
+        }
 
         //   win.webContents.on(
         //     'did-frame-navigate',
