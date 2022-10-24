@@ -1,51 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Update</title>
-    <link rel="stylesheet" href="assets/bootstrap.min.css"/>
-    <style>
-        body, html {
-            height: 100%
-        }
-        .wrapper {
-            height: 100%
-        }
-        .update-container {
-            width: 100%
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <title>Update</title>
+        <link rel="stylesheet" href="assets/bootstrap.min.css" />
+        <link rel="stylesheet" href="assets/fonts/fonts.css" />
+        <style>
+            body,
+            html {
+                height: 100%;
+                background-color: #aedbf2;
+            }
+            .wrapper {
+                height: 100%;
+            }
+            .update-container {
+                width: 70%;
+                height: 15%;
+                background-color: #f7fbfe;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .container-wait {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-        .check>span, .check>.spinner-grow {
-            vertical-align: middle;
-        }
+            .container-wait img {
+                height: 35px;
+            }
 
-        .progress-container {
-            color: #8d8c8c;
-            display: none;
-        }
+            .wait_txt {
+                margin-left: 15px;
+                font-style: italic;
+                font-family: Montserrat;
+                color: #595c61;
+                opacity: 70%;
+            }
 
+            .logo-text {
+                font-size: 24px;
+                font-weight: bolder;
+                color: #565f62;
+                margin-left: 10px;
+                font-family: Montserrat;
+            }
+            .version-text {
+                font-size: 12px;
+                font-weight: bolder;
+                color: #565f62;
+                margin-left: 5px;
+                font-family: Montserrat;
+            }
 
-    </style>
-</head>
-<body>
-<div class="d-flex align-items-center wrapper">
-    <div class="update-container p-3">
+            .text-display {
+                display: flex;
+                align-items: baseline;
+            }
 
-        <div id="check" class="check">
-            <div class="spinner-grow text-warning"></div> <span>Checking updates, please wait...</span>
-        </div>
+            .browser-version {
+                display: flex;
+                justify-content: flex-start;
+            }
 
-        <div id="progress" class="progress-container">
-            Downloading updates
-            <div class="progress">
-                <div class="progress-bar bg-warning" role="progressbar"></div>
+            .check > span,
+            .check > .spinner-grow {
+                vertical-align: middle;
+            }
+
+            .progress-container {
+                color: #8d8c8c;
+                display: none;
+            }
+
+            .times {
+                margin-top: 15px;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="d-flex align-items-center wrapper">
+            <div class="update-container p-3">
+                <div id="check" class="check">
+                    <div class="container-wait">
+                        <img src="./assets/favicon_new.ico" />
+                        <div class="text-display">
+                            <div class="browser-version">
+                                <span class="logo-text">BROWSER </span>
+                                <span class="version-text" id="version-text">v1.0.33 </span>
+                            </div>
+                            <span class="wait_txt"
+                                >TN Browser checking for updates... Please
+                                wait</span
+                            >
+                        </div>
+                    </div>
+
+                    <div class="times">&times;</div>
+                </div>
+
+                <div id="progress" class="progress-container">
+                    Downloading updates
+                    <div class="progress">
+                        <div
+                            class="progress-bar bg-warning"
+                            role="progressbar"
+                        ></div>
+                    </div>
+                </div>
             </div>
         </div>
-
-    </div>
-
-
-</div>
-
-</body>
+    </body>
 </html>

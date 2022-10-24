@@ -1,7 +1,15 @@
 class AppViewSettings {
+
     constructor(settings) {
 
         const {debug, version, workDirectory, ...other} = settings;
+
+        this._defaultUrlItem = {
+            url: '',
+            displayId: 0,
+            offlineUrl: '',
+            zoom: 1
+        };
 
         this.model = {
             ...other
@@ -26,16 +34,19 @@ class AppViewSettings {
             },
         };
 
-        this.urlModel = [];
-
         this.displays = _APP_.displays;
-
+        this.printers = _APP_.printers.map(a => a.name);
         this.settings = settings;
 
         this.cancelSelector = document.querySelector('[data-selector="cancel-btn"]');
         this.addUrlSel = document.querySelector('[data-selector="addUrl"]');
+        this.addUrlWhitelist = document.querySelector('[data-selector="addUrlWhitelist"]');
 
         this.urlsInputs = document.querySelector('[data-selector="urls-inputs"]');
+        this.whiteurls = document.querySelector('[data-selector="whiteurls"]');
+        this.whiteurlInput = document.querySelector('[data-selector="whiteurl"]');
+        this.ticketPrinter = document.querySelector('[data-selector="ticketPrinter"]');
+        this.versionInfo = document.querySelector('[data-selector="versionInfo"]');
 
 
         this.init();
@@ -52,16 +63,25 @@ class AppViewSettings {
 
         this.addUrlSel.addEventListener('click', () => {
 
-            this.model.urls.push({
-                url: '',
-                displayId: 0,
-            });
+            this.model.urls.push(this._defaultUrlItem);
 
             this.renderUrlsInputs();
         });
 
+        this.addUrlWhitelist.addEventListener('click', () => {
+
+            this.model.whitelist.push(this.whiteurlInput.value);
+
+            this.renderWhitelist();
+
+            this.whiteurlInput.value = '';
+        });
+
+        
 
         this.renderUrlsInputs();
+        this.renderWhitelist();
+        this.renderPrinterSelect()
 
         document.querySelectorAll('[model]')
             .forEach((item) => {
@@ -69,6 +89,20 @@ class AppViewSettings {
                 let eventType = 'onkeyup';
                 let valueName = 'value';
                 const modelName = item.getAttribute('model');
+                const dataSetter = item.getAttribute('data-setter');
+                const dataGetter = item.getAttribute('data-getter');
+
+                let getter = (value) => value;
+                let setter = (value) => value;
+
+                if (dataGetter) {
+                    getter = this[dataGetter];
+                }
+
+                if (dataSetter) {
+                    setter = this[dataSetter];
+                }
+
                 let AsType = String;
 
                 switch (item.tagName) {
@@ -90,9 +124,9 @@ class AppViewSettings {
                         break;
                 }
 
-                item[valueName] = this.model[modelName];
+                item[valueName] = getter(this.model[modelName]);
                 item[eventType] = (ev) => {
-                    this.model[modelName] = AsType(ev.target[valueName])
+                    this.model[modelName] = setter(AsType(ev.target[valueName]));
                 }
             });
 
@@ -117,11 +151,25 @@ class AppViewSettings {
                     ev.preventDefault();
                     _APP_.ipcRenderer.send('request-mainprocess-action', {action: 'saveSettings', data: this.model});
                 })
+        this.versionInfo.innerHTML = this.settings.version
+    }
+
+    getZoom(value) {
+        return value * 100;
+    }
+
+    setZoom(value) {
+        return value / 100;
     }
 
     removeUrlsItem(index) {
         this.model.urls.splice(index, 1);
         this.renderUrlsInputs();
+    }
+
+    removeWhitelistItemF(index) {
+        this.model.whitelist.splice(index, 1);
+        this.renderWhitelist();
     }
 
     renderUrlsInputs() {
@@ -131,12 +179,15 @@ class AppViewSettings {
             this.urlsInputs.innerHTML += this.createUrlInput({
                 index,
                 displayId: item.displayId,
+                // errorUrl: item.offlineUrl,
+                // zoom: 1,
             });
         });
-
         const removeUrlItem = document.querySelectorAll(`[data-action="removeUrlItem"]`);
         const setUrlItemDisplay = document.querySelectorAll(`[data-action="setUrlItemDisplay"]`);
         const setUrlItemUrl = document.querySelectorAll(`[data-action="setUrlItemUrl"]`);
+        const setOfflineItemUrl = document.querySelectorAll(`[data-action="setOfflineItemUrl"]`);
+        const setZoomItemUrl = document.querySelectorAll(`[data-action="setZoomItemUrl"]`);
 
         removeUrlItem.forEach((item, index) => {
             item.onclick = (ev) => {
@@ -159,10 +210,30 @@ class AppViewSettings {
             item.value = this.model.urls[index].url;
             item.onkeyup = (ev) => {
                 this.model.urls[Number(ev.target.dataset.index)].url = ev.target.value;
-                console.log(this.model.urls)
+                // console.log(this.model.urls)
             };
         });
 
+        setOfflineItemUrl.forEach((item, index) => {
+            item.value = this.model.urls[index].offlineUrl;
+            item.onkeyup = (ev) => {
+                this.model.urls[Number(ev.target.dataset.index)].offlineUrl = ev.target.value;
+                // console.log(this.model.urls)
+            };
+        });
+
+        setZoomItemUrl.forEach((item, index) => {
+            item.value = this.getZoom(this.model.urls[index].zoom);
+            item.onkeyup = (ev) => {
+                this.model.urls[Number(ev.target.dataset.index)].zoom = this.setZoom(ev.target.value);
+            };
+        });
+
+    }
+
+    renderPrinterSelect(){
+        this.ticketPrinter.innerHTML = "";
+        this.ticketPrinter.innerHTML += this.createPrintersSelect();
     }
 
     createUrlInput({value = '', index = 0, displayId = 0,}) {
@@ -186,6 +257,50 @@ class AppViewSettings {
             index,
             options,
         });
+    }
+
+    createPrintersSelect(){
+        let options = ``;
+        const optionsTemplate = this.getTemplate(`printer-option`);
+        const printerTemplate = this.getTemplate(`printer-select`);
+        this.printers.forEach((item) => {
+            options += this.addDataToTemplate(optionsTemplate, {                
+                name: item,
+                selected: item === this.model.ticketPrinter ? 'selected' : ''
+            });
+        });
+        return this.addDataToTemplate(printerTemplate, {            
+            options,
+        });
+
+    }
+
+    createWhitelistItem({index = 0, url = '',}) {
+        const urlTemplate = this.getTemplate(`url-whitelist`);
+        
+        return this.addDataToTemplate(urlTemplate, {
+            containerSelector: 'WhitelistItem',
+            url,
+            index,            
+        });
+    }
+
+    renderWhitelist() {
+        this.whiteurls.innerHTML = "";
+
+        this.model.whitelist.forEach((url, index) => {
+            this.whiteurls.innerHTML += this.createWhitelistItem({
+                index,
+                url
+            });
+        });
+        const removeWhitelistItem = document.querySelectorAll(`[data-action="removeWhitelistItem"]`);
+        
+        removeWhitelistItem.forEach((item, index) => {
+            item.onclick = (ev) => {
+                this.removeWhitelistItemF(Number(ev.target.dataset.index));
+            };
+        })        
     }
 
     getTemplate(id) {

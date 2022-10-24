@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="assets/fonts/fonts.css">
     <title>Document</title>
     <style>
         * {
@@ -20,28 +21,81 @@
         }
 
         .wrapper {
-            height: 100vh;
+            height: 90vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .danger-text {
-            color: red;
-            font-size: 22px;
+
+        .container-wait {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container-wait img {
+            height: 60px;
+        }
+
+        .logo-text {
+            font-size: 40px;
+            font-weight: bold;
+            color: #565f62;
+            margin-left: 10px;
+            font-family: Montserrat;
+        }
+        .version-text {
+            font-size: 18px;
+            font-family: Montserrat;
+            font-weight: bold;
+            color: #565f62;
+            margin-left: 5px;
+        }
+
+        .text-display{
+            display: flex;
+            align-items: baseline;
+        }
+        .browser-version {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .powered {
+            height: 10vh;
+            font-size: 16px;
+            font-weight: bold;
+            color: #565f62;
+            font-style: italic;
+            font-family: Montserrat;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding-bottom: 60px;
+            padding-right: 60px;
         }
     </style>
 </head>
 
-<body class="wrapper">
-<img src="./assets/logo1-1.jpg"/>
+<body>
+<div class="wrapper">
+<div class="container-wait">
+    <img src="./assets/favicon_new.ico"/>
+    <div class="text-display">
+        <div class="browser-version">
+            <span class="logo-text">BROWSER </span>
+            <span class="version-text" data-selector="version" >...</span>
+        </div>
+    </div>
+</div>
 
-<span data-selector="version" class="danger-text">TEST VERSION</span>
 <!-- <button id="btn" click="">
   Print me
 </button> -->
-
 <div class="control-container"></div>
+</div>
+<span class="powered">POWERED BY TELENORMA</span>
 </body>
 <script>
     window.addEventListener('settings', (e) => {

@@ -1,41 +1,51 @@
 {
-  "name": "tn-browser",
-  "version": "1.0.5",
-  "description": "Private Browser",
-  "main": "index.js",
-  "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "build --win -p always"
-  },
-  "keywords": [],
-  "author": "TELENORMA",
-  "license": "ISC",
-  "devDependencies": {
-    "electron": "^10.0.0",
-    "electron-builder": "^20.28.4"
-  },
-  "dependencies": {
-    "electron-is-dev": "^1.2.0",
-    "electron-log": "^4.2.4",
-    "electron-updater": "^4.3.5",
-    "jquery": "^3.5.1"
-  },
-  "build": {
-    "icon": "./assets/icon_256.ico",
-    "appId": "ag.telenorma.tnbrowser",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "ivaninja",
-        "repo": "TN_browser"
-      }
-    ],
-    "win": {
-      "target": [
-        "nsis",
-        "nsis-web"
-      ]
+    "name": "tn-browser",
+    "version": "1.0.43",
+    "description": "Private Browser",
+    "main": "index.js",
+    "scripts": {
+        "start": "electron .",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "publish": "build --win -p always",
+        "build": "build --win"
+    },
+    "keywords": [],
+    "author": "TELENORMA",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^10.1.5",
+        "electron-builder": "^20.28.4"
+    },
+    "dependencies": {
+        "axios": "^0.27.2",
+        "electron-is-dev": "^1.2.0",
+        "electron-log": "^4.2.4",
+        "electron-pdf-window": "^1.0.12",
+        "electron-updater": "^4.3.5",
+        "jquery": "^3.5.1",
+        "pdf-to-printer": "^5.3.0",
+        "request": "^2.88.2"
+    },
+    "build": {
+        "icon": "./assets/icon_256_new.ico",
+        "appId": "ag.telenorma.tnbrowser",
+        "publish": [
+            {
+                "provider": "github",
+                "owner": "ivaninja",
+                "repo": "TN_browser"
+            }
+        ],
+        "win": {
+            "target": [
+                "nsis",
+                "nsis-web"
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": true,
+            "include": "build/installer.nsh"
+        }
     }
-  }
 }

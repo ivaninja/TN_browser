@@ -1,6 +1,5 @@
 const {ipcRenderer} = require('electron');
 
-
 class UpdatePreload {
 
     constructor() {
@@ -8,13 +7,18 @@ class UpdatePreload {
         this.progressbarSelector = document.querySelector('[role="progressbar"]');
         this.progressSelector = document.querySelector('#progress');
         this.checkSelector = document.querySelector('#check');
+        this.versiondiv = document.querySelector('#version-text');
 
+        ipcRenderer.send('variable-request', ['version']);
 
         ipcRenderer.on('message', (event, message) => {
             console.log(`event`, event, message)
             if (message.action) {
                 this[message.action](message.data)
             }
+        });
+        ipcRenderer.on('version', (event, message)=>{
+            this.versiondiv.innerHTML = message.version;
         });
     }
 

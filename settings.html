@@ -1,186 +1,438 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Settings</title>
-    <link rel="stylesheet" href="assets/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/settings.css">
-    <script src="assets/js/settings.js" defer></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Settings</title>
+        <link rel="stylesheet" href="assets/bootstrap.min.css" />
+        <link rel="stylesheet" href="assets/settings.css" />
+        <script src="assets/js/settings.js" defer></script>
+    </head>
+    <body>
+        <div id="test" class="container">
+            <h1 class="my-5">Settings</h1>
+            <h5 class="my-5">TN Browser version <span  class="badge badge-secondary" data-selector="versionInfo"></span></h5>
+            <div data-selector="settings-area">
+                <form data-selector="form">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Window Title</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="title"
+                                type="text"
+                                class="form-control"
+                            />
+                        </div>
+                    </div>
 
-<div id="test" class="container">
-    <h1 class="my-5">Settings</h1>
-    <div data-selector="settings-area">
-        <form data-selector="form">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Window Width</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="width"
+                                type="number"
+                                class="form-control no-arrows"
+                            />
+                        </div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Window Title</label>
-                <div class="col-sm-10">
-                    <input model="title" type="text" class="form-control"/>
-                </div>
-            </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Window Height</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="height"
+                                type="number"
+                                class="form-control no-arrows"
+                            />
+                        </div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Window Width</label>
-                <div class="col-sm-10">
-                    <input model="width" type="number" class="form-control"/>
-                </div>
-            </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label pb-3"
+                            >Urls:
+                            <div
+                                data-selector="addUrl"
+                                class="btn btn-success px-3"
+                            >
+                                +
+                            </div>
+                        </label>
+                        <div class="col-sm-10 p-0">
+                            <div
+                                class="mx-3 urls-inputs-container"
+                                data-selector="urls-inputs"
+                            ></div>
+                        </div>
+                    </div>                    
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Window Height</label>
-                <div class="col-sm-10">
-                    <input model="height" type="number" class="form-control"/>
-                </div>
-            </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Splash Screen Timeout</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="splashScreenTimeout"
+                                type="number"
+                                class="form-control"
+                            />
+                        </div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label pb-3">Urls:
-                    <div data-selector="addUrl" class="btn btn-success px-3">+</div>
-                </label>
-                <div class="col-sm-10" data-selector="urls-inputs">
-                </div>
-            </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Check Online Timeout</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="checkOnlineTimeout"
+                                type="number"
+                                class="form-control"
+                            />
+                        </div>
+                    </div>
 
-            <div class="form-group row">
-                <label class="col-sm-2 col-form-label">Splash Screen Timeout</label>
-                <div class="col-sm-10">
-                    <input model="splashScreenTimeout" type="number" class="form-control"/>
-                </div>
-            </div>
-
-            <div class="row bg-light border m-0 py-3 mb-3">
-                <div class="col-12">
-
-                    <div class="row">
-                        <div class="col">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Select font for printing</label
+                        >
+                        <div class="col-sm-6">
+                            <select model="printFont" class="form-control">
+                                <option value="Arial">Arial</option>
+                                <option value="Monaco">Monaco</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
                             <div class="form-group form-check">
                                 <label class="form-check-label">
-                                    <input model="showMinimizeButton" type="checkbox" class="form-check-input"/> Show
-                                    Minimize Button</label>
+                                    <input
+                                        model="changeFont"
+                                        type="checkbox"
+                                        class="form-check-input"
+                                    />
+                                    Apply fonts ?</label
+                                >
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group row">
-                                <label class="col-sm col-form-label">Button position</label>
-                                <div class="col-sm">
-                                    <select model="buttonPosition" class="form-control">
-                                        <option value="TOP_LEFT">TOP LEFT</option>
-                                        <option value="TOP_RIGHT">TOP RIGHT</option>
-                                        <option value="BOTTOM_RIGHT">BOTTOM RIGHT</option>
-                                        <option value="BOTTOM_LEFT">BOTTOM LEFT</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                        </div>                       
+                    </div>                        
                     </div>
 
-                </div>
-                <div class="col-sm-4">
-                    Minimize Button Margin
-                </div>
-                <div class="col-sm-8 pl-0">
-                    <div class="row m-0">
-                        <div class="col">
-                            <div class="form-group">
-                                <label class="form-label">Left</label>
-                                <div class="">
-                                    <input submodel="left" type="number" class="form-control"/>
+                    <div class="row bg-light border m-0 py-3 mb-3">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group form-check">
+                                        <label class="form-check-label">
+                                            <input
+                                                model="showMinimizeButton"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                            />
+                                            Show Minimize Button</label
+                                        >
+                                    </div>
+                                    <div class="form-group form-check">
+                                        <label class="form-check-label">
+                                            <input
+                                                model="showOfflineButton"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                            />
+                                            Show Offline Button</label
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group row">
+                                        <label class="col-sm col-form-label"
+                                            >Offline and Minimize Buttons position</label
+                                        >
+                                        <div class="col-sm">
+                                            <select
+                                                model="buttonPosition"
+                                                class="form-control"
+                                            >
+                                                <option value="TOP_LEFT">
+                                                    TOP LEFT
+                                                </option>
+                                                <option value="TOP_RIGHT">
+                                                    TOP RIGHT
+                                                </option>
+                                                <option value="BOTTOM_RIGHT">
+                                                    BOTTOM RIGHT
+                                                </option>
+                                                <option value="BOTTOM_LEFT">
+                                                    BOTTOM LEFT
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="col-sm-4">Minimize and Offline Buttons Margin</div>
+                        <div class="col-sm-8 pl-0">
+                            <div class="row m-0">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="form-label">Left</label>
+                                        <div class="">
+                                            <input
+                                                submodel="left"
+                                                type="number"
+                                                class="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="form-label">Right</label>
+                                        <div class="">
+                                            <input
+                                                submodel="right"
+                                                type="number"
+                                                class="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="form-label">Top</label>
+                                        <div class="">
+                                            <input
+                                                submodel="top"
+                                                type="number"
+                                                class="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group row">
+                                        <label class="form-label">Bottom</label>
+                                        <div class="">
+                                            <input
+                                                submodel="bottom"
+                                                type="number"
+                                                class="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input
+                                model="buttonMargin"
+                                disabled
+                                type="hidden"
+                                class="form-control"
+                            />
+                        </div>
 
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <label class="form-label">Right</label>
-                                <div class="">
-                                    <input submodel="right" type="number" class="form-control"/>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="col">
-                            <div class="form-group">
-                                <label class="form-label">Top</label>
-                                <div class="">
-                                    <input submodel="top" type="number" class="form-control"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
+                        <!--div class="col-12">
                             <div class="form-group row">
-                                <label class="form-label">Bottom</label>
-                                <div class="">
-                                    <input submodel="bottom" type="number" class="form-control"/>
+                                <label class="col-sm-2 col-form-label"
+                                    >Minimize Icon Url</label
+                                >
+                                <div class="col-sm-10">
+                                    <input
+                                        model="minimizeIconUrl"
+                                        type="text"
+                                        class="form-control"
+                                    />
                                 </div>
                             </div>
 
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label"
+                                    >Maximize Icon Url</label
+                                >
+                                <div class="col-sm-10">
+                                    <input
+                                        model="maximizeIconUrl"
+                                        type="text"
+                                        class="form-control"
+                                    />
+                                </div>
+                            </div>
+                        </div!-->
+                    </div>
+
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input
+                                model="kiosk"
+                                type="checkbox"
+                                class="form-check-input"
+                            />
+                            Kiosk Mode</label
+                        >
+                    </div>
+
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input
+                                model="frame"
+                                type="checkbox"
+                                class="form-check-input"
+                            />
+                            Frame Mode</label
+                        >
+                    </div>
+                    
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Popup Wndow width</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="guestwidth"
+                                type="number"
+                                class="form-control"
+                            />
                         </div>
                     </div>
-                    <input model="buttonMargin" disabled type="hidden" class="form-control"/>
-                </div>
-
-                <div class="col-12">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Popup Wndow height</label
+                        >
+                        <div class="col-sm-10">
+                            <input
+                                model="guestheight"
+                                type="number"
+                                class="form-control"
+                            />
+                        </div>
+                    </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-2 col-form-label">Minimize Icon Url</label>
+                        <label class="col-sm-2 col-form-label"
+                            >URL for checking online</label
+                        >
                         <div class="col-sm-10">
-                            <input model="minimizeIconUrl" type="text" class="form-control"/>
+                            <input
+                                model="checkOnlineUrl"
+                                type="text"
+                                class="form-control"
+                            />
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-2 col-form-label">Maximize Icon Url</label>
+                        <label class="col-sm-2 col-form-label"
+                            >Select alternative printer</label
+                        >
                         <div class="col-sm-10">
-                            <input model="maximizeIconUrl" type="text" class="form-control"/>
+                            <div class="mx-3" data-selector="ticketPrinter"
+                            ></div>
                         </div>
                     </div>
-                </div>
 
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label"
+                            >Add allowed url</label
+                        >
+                        <div class="col-sm-9">
+                            <input
+                                type="url"
+                                class="form-control"
+                                data-selector="whiteurl"
+                            />
+                        </div>
+                        <div class="col-sm-1">
+                            <div
+                                data-selector="addUrlWhitelist"
+                                class="btn btn-success px-3"
+                            >
+                                +
+                            </div>
+                        </div>
+                    </div>                   
+
+                    <div  class="form-group row">
+                        <div class="col-sm-2 p-0"></div>
+                        <div class="col-sm-10 p-0">
+                            <div
+                                class="mx-3 urls-inputs-container"
+                                data-selector="whiteurls"
+                            ></div>
+                        </div>                        
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mb-5">
+                        <div
+                            class="btn btn-lg btn-light"
+                            data-selector="cancel-btn"
+                        >
+                            Back
+                        </div>
+                        <button type="submit" class="btn btn-lg btn-success">
+                            Save
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input model="kiosk" type="checkbox" class="form-check-input"/> Kiosk Mode</label>
-            </div>
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input model="frame" type="checkbox" class="form-check-input"/> Frame Mode</label>
-            </div>
-
-            <div class="d-flex justify-content-between mb-5 ">
-                <div class="btn btn-lg btn-light" data-selector="cancel-btn">Back</div>
-                <button type="submit" class="btn btn-lg btn-success">Save</button>
-            </div>
-
-        </form>
-    </div>
-    <div id="closeapp"></div>
-</div>
-
-
-<script type="html/template" id="url-input">
-    <div data-selector="{{containerSelector}}" class="row mb-3">
-        <div class="col">
-            <input type="text" data-action="setUrlItemUrl" value="" data-index="{{index}}" class="form-control"/>
+            <div id="closeapp"></div>
         </div>
-        <div class="col-3">
-            <select data-action="setUrlItemDisplay" data-index="{{index}}" class="form-control">
-                <option disabled>Choose display</option>
+
+        <script type="html/template" id="url-input">
+            <div data-selector="{{containerSelector}}" class="row m-0 py-3 odd">
+                <div class="col">
+                    Url:
+                    <input type="text" data-action="setUrlItemUrl" value="" data-index="{{index}}" class="form-control"
+                           required/>
+                    Offline url:
+                    <input type="text" data-action="setOfflineItemUrl" value="" data-index="{{index}}" class="form-control"
+                           required/>
+                </div>
+                <div class="col-3">
+                    Display:
+                    <select data-action="setUrlItemDisplay" data-index="{{index}}" class="form-control">
+                        <option disabled>Choose display</option>
+                        {{options}}
+                    </select>
+                    Zoom %:
+                    <input type="number" min="1" max="200" step="1" data-action="setZoomItemUrl" value="" data-index="{{index}}"
+                           class="form-control"/>
+
+                </div>
+                <div class="col-1 align-self-center">
+                    <div class="btn btn-danger px-3" data-action="removeUrlItem" data-index="{{index}}">-</div>
+                </div>
+            </div>
+        </script>
+
+        <script type="html/template" id="display-option">
+            <option {{selected}} value="{{value}}">{{name}}</option>
+        </script>
+
+        <script type="html/template" id="printer-option">
+            <option {{selected}} value="{{name}}">{{name}}</option>
+        </script>
+
+        <script type="html/template" id="printer-select">
+            <select model="ticketPrinter" class="form-control">
+                <option disabled>Choose printer</option>
                 {{options}}
             </select>
-        </div>
-        <div class="col-1">
-            <div class="btn btn-danger px-3" data-action="removeUrlItem" data-index="{{index}}">-</div>
-        </div>
-    </div>
-</script>
+        </script>
 
-<script type="html/template" id="display-option">
-    <option {{selected}} value="{{value}}">{{name}}</option>
-</script>
 
-</body>
+        <script type="html/template" id="url-whitelist">
+            <div data-selector="{{containerSelector}}" class="row m-0 py-3 odd">
+                <div class="col">
+                    {{url}}
+                </div>                
+                <div class="col-1 align-self-center">
+                    <div class="btn btn-danger px-3" data-action="removeWhitelistItem" data-index="{{index}}">-</div>
+                </div>
+            </div>
+        </script>
+    </body>
 </html>
